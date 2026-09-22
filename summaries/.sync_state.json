@@ -1,0 +1,107 @@
+{
+  "00_算力需求总览": {
+    "file_hash": "e6fdd634cd1d9b351f4355dda306c52ea7568bdc412f925770093d1d7cf2e031",
+    "joplin_note_id": "2153f4ec2dd54979ac963b65a04a9432",
+    "joplin_updated_time": 1788943645548
+  },
+  "01_OneRec-Think": {
+    "file_hash": "67e48c3548a9359f8852aeea94af4787f580f8216162e28b81bd84ab4bcbf15c",
+    "joplin_note_id": "8262e2ca066c4d4a9d7a97f03d8ea73d",
+    "joplin_updated_time": 1788943200740
+  },
+  "02_BLaIR": {
+    "file_hash": "55fa2fb09fac7792ac17045bb37ebe588276b99ef13cc455465d0763665a750e",
+    "joplin_note_id": "a2e73e3e0e7f4db7abdf838678aa4a67",
+    "joplin_updated_time": 1788943200768
+  },
+  "03_ReRec": {
+    "file_hash": "8bd19e7a8fa92ff91ad1763f1c4288ee67fd9d33a195d9b6a2f8e490b421429c",
+    "joplin_note_id": "1323d1af1d004882a6238f1192cd5d3e",
+    "joplin_updated_time": 1788943200783
+  },
+  "04_HARPO": {
+    "file_hash": "b4b338ec176a38a1809cacacc572209f9ff9566d3aac835ba796692f0d8921a4",
+    "joplin_note_id": "72c71f1ef3bc4f818510e1bbba2f2db0",
+    "joplin_updated_time": 1788943200798
+  },
+  "05_MemRec": {
+    "file_hash": "496face590cf489514c9fd9fb64739ffe8e17d158cb6afb58dacc952a043f5d3",
+    "joplin_note_id": "855288503c40495ebb26fedc33918a15",
+    "joplin_updated_time": 1788943211031
+  },
+  "06_ROS": {
+    "file_hash": "3574561546e168c1e50acf51a3725c78e65e7ebdc696fd084bfe9a31a5c1d97d",
+    "joplin_note_id": "99de37a704c74bbd97d7a2d1437b5e45",
+    "joplin_updated_time": 1788943211043
+  },
+  "07_MirroringUsers": {
+    "file_hash": "3377cc5158363627963b4d9ac518e9e627b233ec24b6ea805740d7fa0a7bdb82",
+    "joplin_note_id": "7d74cb643c4d4f279dfd8c649406e768",
+    "joplin_updated_time": 1788943211054
+  },
+  "08_RecPO": {
+    "file_hash": "ef8a64dbc1c649dc271e411533238aa2d61cbd8a6047d154e36303c654526316",
+    "joplin_note_id": "e92b6980205d46df8c6eaa7697ca9d32",
+    "joplin_updated_time": 1788943419232
+  },
+  "09_AlignUSER": {
+    "file_hash": "f23960f7e9eb9d8e1439f26fc4bb24960f3ae5efc60ade6bd1418138d031d543",
+    "joplin_note_id": "b586b8e72f3c41d3b9924a81a0c8d2ba",
+    "joplin_updated_time": 1788943419250
+  },
+  "10_PURPLE": {
+    "file_hash": "d78c23ad81c510ec593cb0ec0b18fdd09a279ec83c1b64c420e9ea08693fd4d6",
+    "joplin_note_id": "a19334fa4a204eeb93752759ed557a8b",
+    "joplin_updated_time": 1788943429906
+  },
+  "11_PtE": {
+    "file_hash": "ed973f27698c9d1af0f9a078495ae478d4fecc9f5e2d9258f6c21c6accbca8e9",
+    "joplin_note_id": "99059dd67c6346aa9b2a54a75137701c",
+    "joplin_updated_time": 1788943429958
+  },
+  "12_MHL": {
+    "file_hash": "b5b74b3b155765da17d4f5dcdcfbda8d0918513cb0da786e05f97012fd849ba3",
+    "joplin_note_id": "5642a767695349b99cca741137bba096",
+    "joplin_updated_time": 1788943429970
+  },
+  "13_SiPeR": {
+    "file_hash": "200faee743f5f04ea48f3c9d39ea47536d629597a57bd3df18f77a8019f59813",
+    "joplin_note_id": "d41188d1f23f49b9b0eaf5c94e486dc8",
+    "joplin_updated_time": 1788943440231
+  },
+  "14_VisualInception": {
+    "file_hash": "69bb27bfb7abee7e1327ca86b4e9bb9f703f37e890a08ea16ba83dd7af24a0e1",
+    "joplin_note_id": "142af21920214f44ae69d1fe66d712fc",
+    "joplin_updated_time": 1788943440245
+  },
+  "15_NovelQR": {
+    "file_hash": "90ec2fc74b4a92f80588b2ecf481080b1ad45be78bc577eb4fcfe5d5eea2d53f",
+    "joplin_note_id": "ef8ca6d406ad4b909136233c94476a2e",
+    "joplin_updated_time": 1788943553039
+  },
+  "16_ClusterRAG": {
+    "file_hash": "0b324fb9a7c1390b84738dd80649463dc34ea7e9b8f9be9e83eef4cde8a8e34d",
+    "joplin_note_id": "3d49e920f87442f0b2cfffa2117bde73",
+    "joplin_updated_time": 1788943553067
+  },
+  "17_ShopSimulator": {
+    "file_hash": "2e820a842d4822914187aba3e67f3fb051f73c1fae2338850f6701a19fa3680d",
+    "joplin_note_id": "bc6e53c099a84ceaa3b26417df7fc9c9",
+    "joplin_updated_time": 1788943553143
+  },
+  "18_OPeRA": {
+    "file_hash": "388d982a3cf415b7ecd456aeb736452970d43d12bff0fc7d738430bce982f30d",
+    "joplin_note_id": "9766b8522ac54136ae6e162acf2aa545",
+    "joplin_updated_time": 1788943563642
+  },
+  "19_C-BPO": {
+    "file_hash": "6e099250fd8155c0cc1ea0aaff592cfb6a4506bd5557eb4d6b78e7ef1d06c9c9",
+    "joplin_note_id": "f9fb45d9955f4b8080dc7d7294a3a289",
+    "joplin_updated_time": 1788943563652
+  },
+  "20_PreferenceHeads": {
+    "file_hash": "3cd3aa3f0c001f391644c607ab245920fd3195589a9e4ed9e57bf44623658b69",
+    "joplin_note_id": "47a2a913d71d40bc82c1aa2885736fdf",
+    "joplin_updated_time": 1788943563662
+  }
+}
