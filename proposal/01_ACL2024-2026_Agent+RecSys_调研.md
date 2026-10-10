@@ -160,7 +160,7 @@
 **Gap B：用户模拟器作为 RL reward 的可靠性（Goodhart / reward hacking）——被反复提及但无人系统研究**
 - 2025–2026 大量 CRS agent 训练依赖 LLM 模拟器反馈：ECPO/AILO（ACL'25）、SMTPO（2026-04, 对 ReDial/INSPIRED 用 GRPO）、GRSU（2025）、ShopSimulator RL、HARPO。
 - 已知隐患：*How Reliable is Your Simulator?*（2024，iEvaLM 数据泄漏与 history 依赖）、PEPPER（EMNLP'25，target-biased 模拟器 = 猜谜）、Turing-RL（2026-06，在聊天域用 Turing reward 并**截断 judge reward 以抑制 reward hacking**——但不是推荐域）。
-- **无人测量**：被模拟器训练出的推荐 agent，在换一个模拟器 / 真人数据 / 人工评估上掉多少？学到了哪些"讨好模拟器"的行为？如何设计鲁棒训练？
+- **无人测量**：被模拟器训练出的推荐 agent，在换一个模拟器 / 留出的公开真人对话上掉多少？学到了哪些"讨好模拟器"的行为？如何设计鲁棒训练？
 
 > 两个 gap 的共同点：都利用了 ACL'26 刚开源的资源（OPeRA 真人数据、UserMirrorer 3B 对齐模拟器、ShopSimulator 环境），且都是 **"agent 视角切入推荐"** 而非"推荐算法本身"——适合 agent 背景、推荐新手。
 
@@ -171,7 +171,7 @@
 | 资源 | 内容 | 用途 |
 |---|---|---|
 | [Amazon Reviews 2023](https://amazon-reviews-2023.github.io/)（McAuley Lab） | 5.7 亿评论 / 4800 万商品，含 rating、评论文本、时间戳、verified_purchase、商品 title/features/description/price | 构造真实用户的选择 + 满意度 ground truth |
-| [Amazon-C4](https://huggingface.co/datasets/McAuley-Lab/Amazon-C4) | 21,223 条由 5 星长评论改写的第一人称复杂需求 query，附 user_id、item_id、ori_review，每条 50 个同域候选 | 现成的"委托指令 + 真实用户 + 真实购买"三元组 |
+| [Amazon-C4](https://huggingface.co/datasets/McAuley-Lab/Amazon-C4) | 21,223 条由 5 星长评论改写的第一人称复杂需求 query，附 user_id、item_id、ori_review；全部为 5 星；不带逐条候选集，只附约 106 万件商品的公共池 | 满意型的风格参照与改写器校验集；候选集需自建 |
 | [OPeRA](https://huggingface.co/datasets/NEU-HAI/OPeRA)（ACL'26） | 51 真人 692 会话，persona（Big Five/MBTI/购物习惯）、页面观测、动作、rationale、最终购买 ASIN/价格/选项 | 高保真"真人 vs agent"对照；rationale 可当 oracle |
 | [ShopSimulator](https://github.com/ShopAgent-Team/ShopSimulator)（ACL'26，阿里） | 130 万淘宝商品、Shopper–Agent–Env 三方交互、persona 模式、可训练 | 中文 / 多轮场景迁移验证 |
 | [UserMirrorer](https://github.com/Joinn99/UserMirrorer)（ACL'26） | 8 领域 10K 蒸馏样本 + Qwen2.5-3B / Llama-3.2-3B SFT+DPO 模拟器 checkpoint | 作为 user oracle / 对照的 delegate / RL 环境 |

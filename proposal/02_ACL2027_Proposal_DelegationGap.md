@@ -73,19 +73,19 @@
 | 来源 | 角色 | 规模 | 关键字段 | 备注 |
 |---|---|---|---|---|
 | **Amazon Reviews 2023**（McAuley Lab） | 主数据源 | 5.7 亿评论 / 4800 万商品 | user_id、parent_asin、rating、评论文本、timestamp、verified_purchase、商品 title/features/description/price/store | 构造用户历史 \(H_u\) 与后悔型 episode |
-| **Amazon-C4**（BLaIR 作者） | 满意型 episode 种子 | 21,223 条 | 第一人称复杂需求 query、user_id、item_id、ori_rating(=5)、ori_review、每条 50 个同域候选 | **现成的"指令 + 真实用户 + 真实购买"三元组** |
+| **Amazon-C4**（BLaIR 作者） | 满意型 episode 种子 | 21,223 条 | 第一人称复杂需求 query、user_id、item_id、ori_rating(=5)、ori_review；不带逐条候选集，只附约 106 万件商品的公共池 | 风格参照与改写器校验集；满意型与后悔型统一从 Amazon Reviews 2023 用同一改写器构造（见 04 号文档 3.1 节） |
 | **OPeRA**（ACL'26） | 真人对照 | 51 人 / 692 会话（会话按购买信号切分，含购买的会话数需下载后统计） | persona（Big Five、MBTI、购物风格）、页面观测、动作、加购/购买时的 rationale、最终购买 ASIN/价格/选项 | 候选集 = 用户实际浏览过的商品详情页；rationale 作 oracle 与解释 gold |
 | **ShopSimulator**（ACL'26，阿里） | 中文迁移（可选） | 130 万淘宝商品 | persona 模式、多轮 | 若时间允许，验证结论跨语言/跨平台 |
 | **UserMirrorer**（ACL'26） | 对照 / oracle | 3B checkpoint + 10K 数据 | 8 领域 | ① 作为"模拟器当受托人"的对照；② 作为回答澄清问题的 user oracle（条件于真实历史） |
 
 **Episode 构造流程（Amazon 部分）**
-1. **指令 \(q\)**：满意型直接用 Amazon-C4 query；后悔型从 1–2 星、≥100 字、verified 的评论中由 LLM 改写出**购前需求**（只保留"我想要什么"，剥离"结果如何"），并做 300 条人工校验。
+1. **指令 \(q\)**：满意型（5 星）与后悔型（1–2 星）都从 ≥100 字、verified 的评论中由同一个 LLM 改写器生成**购前需求**（只保留"我想要什么"，剥离"结果如何"）；泄漏检查用关键词规则 + 两个 LLM judge，作者自查 50 条（见 04 号文档 3.1 节）。
 2. **历史 \(H_u\)**：取该用户在 \(i^*\) 时间戳**之前**的评论（标题 + 评分 + 摘要），按时间排序；≥5 条为"有历史"分层，<5 条为冷启动分层。
 3. **候选集 \(C\)**（\(K=10\)，附 \(K=20\) 变体）：同细分品类、经 embedding 检索 + LLM 硬约束核验**都满足 \(q\)** 的商品，刻意在价格档 / 均分 / 评论数 / 品牌上多样化，含 \(i^*\)。保证 \(u\) 对候选的评论不出现在卡片中。
 4. **呈现格式**：统一的 product card（title / price / avg rating / #reviews / 3 条要点 / 2–3 条他人评论），可选 [Sponsored] 标签与营销化改写。
 5. **干预变体（RQ1 探针）**：位置随机置换（≥3 次）、干扰项加 [Sponsored]、干扰项营销化改写、评论数 ×10、价格 ±20%、画像中插入身份线索（性别/年龄/种族中性 vs. 显式）。
 6. **去泄漏与污染检查**：优先选 2023-06 之后、低热度商品；做"闭卷回忆 ASIN 评论"探针并报告污染率；候选 title 与 \(q\) 的 n-gram 重叠上限。
-7. **规模**：Amazon 满意型 3,000 + 后悔型 1,500（人工校验 300）+ OPeRA ~200 会话；训练集另从 Amazon 训练切分中自动构造 ~30k episode。
+7. **规模**：Amazon 满意型 3,000 + 后悔型 1,500（自动泄漏过滤后）+ OPeRA ~200 会话；训练集另从 Amazon 训练切分中自动构造 ~30k episode。
 
 ### 2.5 评测指标
 
@@ -132,7 +132,7 @@
 | "又一个购物 agent benchmark？"（EComAgentBench、Shopping Companion、ShopperBench、ShopSimulator） | 它们用**合成 persona / 脚本 rubric**打分；我们用**真实用户的真实选择与满意度**，并加入因果干预探针与通道性价比分析。 |
 | "sponsorship bias / role coherence 已经研究过" | 它们是合成旅行场景的行为学探针，无真实 ground truth、单品类、无方法；我们多品类 + 真人数据 + 训练方法。 |
 | "iAgent 已提出用户侧 agent" | iAgent 用指令重排平台推荐；我们问的是"这个 agent 到底是否代表用户"以及"如何训练它更代表用户"。 |
-| 数据泄漏 / 污染 | 时间切分、低热度筛选、闭卷探针报告污染率、候选与 \(q\) 的重叠上限、人工校验子集。 |
+| 数据泄漏 / 污染 | 时间切分、低热度筛选、闭卷探针报告污染率、候选与 \(q\) 的重叠上限、作者自查子集；均分与评论数按目标时间戳之前重算。 |
 
 ### 2.9 算力与预算（上限 2 万元，预计 ≤ 1 万元）
 
@@ -142,7 +142,7 @@
 | 数据构造（LLM 改写 + rationale 生成） | ~35k 次调用 | ≈ 1k 元 |
 | 本地训练 | Qwen3-4B/8B LoRA SFT + DPO | RTX 5090 自有，电费忽略 |
 | 租卡（可选） | 1×A100/H800 80G × 150 h × ~10–15 元/h | ≈ 2–3k 元 |
-| 人工校验 | 300 条后悔型 q + 200 条 OPeRA 对齐，自己 + 1 位同学 | 0–500 元 |
+| 质量检查 | 自动泄漏检查 + 两个 LLM judge 一致率；作者自查 50 条；不招募他人 | 0 元 |
 | **合计** | | **≈ 6–8k 元** |
 
 ### 2.10 时间线（每天 3h，约 90h/月）
@@ -153,7 +153,7 @@
 | P1 数据 | 10/6–10/31 | DelegateBench v0：Amazon 满意型 3k + 后悔型 1.5k + OPeRA 200；干预变体脚本 | 数据卡 + 统计表；污染率报告 |
 | P2 测量 | 11/1–11/30 | 6 模型 × 4 通道 × 干预探针；非 agent 基线；UserMirrorer 对照 | RQ1/RQ2 主表 + 图；确定"故事" |
 | P3 方法 | 12/1–12/31 | SFT → 满意度加权 DPO → 操纵不变性；预算化澄清；消融 | RQ3 主表；鲁棒性曲线 |
-| P4 写作 | 1/1–ARR 截止 | 初稿 → 老师把关 → 修改；补 human eval | 8 页 long paper + 附录 + 代码/数据发布 |
+| P4 写作 | 1/1–ARR 截止 | 初稿 → 老师把关 → 修改；补 LLM judge 一致率报告（不做人工评测） | 8 页 long paper + 附录 + 代码/数据发布 |
 | 缓冲 | 全程 | 若 P3 不及预期，退回 "benchmark + analysis" 定位（仍可投 Findings） | |
 
 ### 2.11 风险与应对
@@ -161,7 +161,7 @@
 | 风险 | 概率 | 应对 |
 |---|---|---|
 | Amazon-C4 的 \(q\) 源自目标商品评论，可能"太好猜" | 中 | 候选全部满足 \(q\)；用 embedding 相似度上限筛掉 trivial 项；报告 retrieval-only 基线作为 sanity check |
-| 后悔型 \(q\) 改写混入"结果信息" | 中 | 提示词只允许购前需求；300 条人工校验；报告 inter-annotator agreement |
+| 后悔型 \(q\) 改写混入"结果信息" | 中 | 提示词只允许购前需求；关键词规则 + 两个 LLM judge 双重过滤，报告一致率与剔除率；作者自查 50 条 |
 | OPeRA 规模小、购买会话有限 | 高 | 仅作真人对照与 rationale 分析，不做主表 |
 | 训练增益不显著 | 中 | 退回 benchmark + analysis 定位；把 UserMirrorer 与 API 的对比做深 |
 | API 成本超预算 | 低 | 分层抽样；主实验用 1 个 API 模型 + 开源模型，其余模型只跑子集 |
@@ -192,12 +192,12 @@
 
 ## 4. 备选方向（Plan B）：Goodhart in Simulator-Trained Conversational Recommendation Agents
 
-**一句话**：越来越多 CRS agent 用 LLM 用户模拟器当 RL reward（ECPO/AILO ACL'25、SMTPO 2026、GRSU、ShopSimulator RL、HARPO），但**没有人测量**被模拟器训练出的 agent 在"换模拟器 / 真人数据 / 人工评估"上掉多少、学到了哪些讨好模拟器的行为、如何鲁棒训练。
+**一句话**：越来越多 CRS agent 用 LLM 用户模拟器当 RL reward（ECPO/AILO ACL'25、SMTPO 2026、GRSU、ShopSimulator RL、HARPO），但**没有人测量**被模拟器训练出的 agent 在"换模拟器 / 留出的公开真人对话"上掉多少、学到了哪些讨好模拟器的行为、如何鲁棒训练。
 
 | 项目 | 内容 |
 |---|---|
 | RQ | (1) 训练模拟器得分与外部得分随训练步数的分叉曲线有多陡？(2) 利用行为分类：奉承、冗长、诱导式提问、复述目标属性（PEPPER 指出的 target-biased 漏洞）等；(3) 哪种防御最有效：模拟器集成/随机化、Turing 式判别锚（Turing-RL 思路迁移到推荐）、reward capping、target-free 模拟器、KL 约束 |
-| 技术 | Qwen3-1.7B/4B LoRA + GRPO（TRL/verl），训练模拟器 \(S_{train}\in\{\)prompted GPT 类、UserMirrorer-3B、AILO 式\(\}\)，评测模拟器 \(S_{test}\neq S_{train}\) + 留出真实对话 + 人工评估 |
+| 技术 | Qwen3-1.7B/4B LoRA + GRPO（TRL/verl），训练模拟器 \(S_{train}\in\{\)prompted GPT 类、UserMirrorer-3B、AILO 式\(\}\)，评测模拟器 \(S_{test}\neq S_{train}\) + 留出的公开真人对话（ReDial / INSPIRED / Reddit-Movie）；单人版本用 best-of-n + 迭代 DPO 代替 GRPO（见 04 号文档 3.2 节） |
 | 数据 | ReDial、INSPIRED、Reddit-Movie（He et al. 2023）、LLM-REDIAL、PEARL；模拟器：UserMirrorer、AILO（若开源）、PEPPER 协议 |
 | 算力 | 中：RL 需租 1×A100/H800 约 200–300 h（≈ 3–5k 元） |
 | 优点 | 问题定义干净、结论对整个"模拟器训练 agent"社区有价值、agent 背景直接可用 |
