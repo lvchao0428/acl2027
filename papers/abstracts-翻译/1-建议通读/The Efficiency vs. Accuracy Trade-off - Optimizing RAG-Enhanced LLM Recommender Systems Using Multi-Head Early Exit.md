@@ -1,0 +1,8 @@
+# The Efficiency vs. Accuracy Trade-off: Optimizing RAG-Enhanced LLM Recommender Systems Using Multi-Head Early Exit
+> 来源文件：The Efficiency vs. Accuracy Trade-off - Optimizing RAG-Enhanced LLM Recommender Systems Using Multi-Head Early Exit.pdf
+
+## 英文原文摘要（Original Abstract）
+The deployment of Large Language Models (LLMs) in recommender systems for Click-Through Rate (CTR) prediction requires a careful balance between computational efficiency and predictive accuracy. This paper introduces OptiRAG-Rec, a comprehensive framework that integrates Retrieval-Augmented Generation (RAG) with a novel multi-head early exit architecture to address both challenges. By leveraging Graph Convolutional Networks (GCNs) as efficient retrieval mechanisms, the framework significantly reduces data retrieval times while maintaining high model performance. Additionally, the multi-head early exit strategy dynamically terminates inference based on real-time predictive confidence assessments, enhancing responsiveness without sacrificing accuracy. Experimental results demonstrate that OptiRAG-Rec reduces computation time while preserving the precision required for reliable recommendations, establishing a new benchmark for efficient and accurate LLM deployment in recommendation.
+
+## 中文翻译（Chinese Translation）
+将大语言模型（LLM）部署到推荐系统中用于点击率（CTR）预测时，需要在计算效率与预测准确率之间取得精细平衡。本文提出 OptiRAG-Rec——一个综合性框架，将检索增强生成（RAG）与新颖的多头早退（multi-head early exit）架构相结合，以同时应对这两方面挑战。通过利用图卷积网络（GCN）作为高效检索机制，该框架在保持高模型性能的同时显著缩短了数据检索时间。此外，多头早退策略基于实时预测置信度评估动态终止推理，在不牺牲准确率的前提下提升响应速度。实验结果表明，OptiRAG-Rec 在缩短计算时间的同时保留了可靠推荐所需的精度，为推荐场景中高效、准确的 LLM 部署树立了新的标杆。

@@ -1,0 +1,254 @@
+Abstract
+
+We present the e-Llama models: 8 billion and
+70 billion parameter large language models that
+are adapted towards the e-commerce domain.
+These models are meant as foundation models
+with deep knowledge about e-commerce, that
+form a base for instruction- and fine-tuning.
+The e-Llama models are obtained by continu-
+ously pretraining the Llama 3.1 base models on
+1 trillion tokens of domain-specific data.
+
+We discuss our approach and motivate our
+choice of hyperparameters with a series of abla-
+tion studies. To quantify how well the models
+have been adapted to the e-commerce domain,
+we define and implement a set of multilingual,
+e-commerce specific evaluation tasks.
+
+We show that, when carefully choosing the
+training setup, the Llama 3.1 models can be
+adapted towards the new domain without sac-
+rificing significant performance on general do-
+main tasks. We also explore the possibility of
+merging the adapted model and the base model
+for a better control of the performance trade-off
+between domains.
+
+1
+Introduction
+
+Large Language Models (LLMs) have greatly im-
+proved the performance on most natural language
+tasks, and often show surprisingly good zero-shot
+generalization to new domains (Singhal et al.,
+2023). However, training on a specific target do-
+main is often the means of choice to reach the best
+tradeoff in terms of scalability, domain knowledge,
+inference costs, and other factors.
+
+While earlier approaches have trained domain-
+specific models from scratch (Beltagy et al., 2019;
+Alsentzer et al., 2019), the big effort of training
+competitive LLMs have meant that researchers and
+practitioners more commonly use continued pre-
+training (CPT), see e.g. Gururangan et al. (2020);
+
+*Correspondence author. Email: cherold@ebay.com.
+†work done while at eBay
+
+Domain Adaptation of Foundation LLMs for e-Commerce
+
+Christian Herold*
+Michael Kozielski
+Tala Bazazo
+Pavel Petrushkov
+Patrycja Cieplicka
+Dominika Basaj†
+Yannick Versley
+Seyyed Hadi Hashemi
+Shahram Khadivi
+
+eBay Inc.
+
+Ke et al. (2023), as compute requirements grew
+from using 1024 V100 GPUs over several days for
+RoBERTa as a larger BERT-like model (Liu et al.,
+2020) to the 16,000 H100 GPUs used for recent
+Llama-3 trainings (Dubey et al., 2024).
+
+For e-commerce applications such as many seen
+at eBay, one could use existing pretrained models,
+such as Llama-3.1 (Dubey et al., 2024) for their
+use-cases. However, these models typically lack
+specific knowledge about the e-commerce domain.
+
+Instead, we continue training the Llama base
+models on a large amount of e-commerce data.
+This way we introduce the domain specific knowl-
+edge into the model, while at the same time keeping
+the general capabilities of the model intact. This
+technique is known as ‘continued pretraining‘ and
+the training setup has to be carefully balanced to
+prevent the model from degrading too much in per-
+formance on general domain tasks.
+
+In Table 1, we compare recent continuous pre-
+training works in terms of the domain, the size of
+the models, as well as the amount of training data.
+As can be seen, our work is at a significantly larger
+scale than most existing works, either in terms of
+model size or in terms of tokens used for training,
+or both. We share our insights regarding large-scale
+model adaptation. In particular, we compare the
+model adaptation for models of different sizes and
+discuss the observed differences in behavior. We
+also explore the possibility of model merging to
+better control the trade-off between general- and
+domain-specific knowledge.
+
+The rest of the paper is structured as follows. In
+Section 3 we discuss our data mixture and explain
+our methods of model evaluation with focus on e-
+commerce specific tasks. In Section 4 we explain
+our series of experiments to determine the opti-
+mal set of hyperparameters. In Section 5 we show
+the performance of the final models and discuss
+the possibility of model merging to better tune for
+different domains.
+
+1039
+
+Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 6: Industry Track), pages 1039–1049
+
+July 28-30, 2025 ©2025 Association for Computational Linguistics
+
+
+Minerva (Lewkowycz et al., 2022)
+STEM
+8B, 62B, 540B
+26B-38.5B
+MediTron (Chen et al., 2023)
+Medicine
+7B, 70B
+46.7B
+Code Llama (Rozière et al., 2023)
+Code
+7B, 13B, 34B, 70B
+520B-1,000B
+Llemma (Azerbayev et al., 2024)
+Math
+7B, 34B
+50B-55B
+DeepSeekMath (Shao et al., 2024)
+Math
+7B
+500B
+SaulLM-7B (Colombo et al., 2024b)
+Law
+7B
+30B
+SaulLM-54, 141B (Colombo et al., 2024a)
+Law
+54B, 141B
+520B
+HEAL (Yuan et al., 2024)
+Medicine
+13B
+14.9B
+Me-LLaMA (Xie et al., 2024)
+Medicine
+13B, 70B
+129B
+ClimateGPT (Thulke et al., 2024)
+Climate
+7B, 13B, 70B
+4.2B
+Nemotron (Parmar et al., 2024)
+General
+15B
+1,000B
+
+e-Llama (ours)
+e-commerce
+8B, 70B
+1,000B
+
+Table 1: Comparing the scale of recent continued pretraining works with our setting. Most existing works are at a
+significantly smaller scale, either in terms of model size or in terms of tokens used for training.
+
+2
+Related Work
+
+The large cost of training LLMs from scratch has
+meant that continued pretraining is very attractive
+for adapting an existing LLM to new languages or
+domains. For example, Minixhofer et al. (2022)
+show that it is possible to reach competitive results
+for non-English languages by continuing the pre-
+training of RoBERTa and GPT-2 models. They start
+from an English model with tokenizer modification
+and reach scores on par with monolingual models
+trained from scratch on a multiple of the data used.
+In terms of adaptation to different domains, Guru-
+rangan et al. (2020) show that continued pretraining
+on a target domain helps a RoBERTa achieve better
+performance on tasks in that domain, even taking
+into account task-specific fine-tuning.
+
+In terms of larger LLMs, Singhal et al. (2023)
+show that while zero-shot performance of PaLM
+finetuned on general-domain instruction data is sur-
+prisingly good on medical text, continued train-
+ing on medical instruction data using parameter-
+efficient finetuning (PEFT) method can further im-
+prove these results. Lewkowycz et al. (2022) show
+that continued training on a mix of the original
+data and mathematical language from ArXiv and
+math web pages can boost PaLM’s performance on
+mathematical tasks. More recent papers address
+the problem of catastrophic forgetting in continued
+pretraining which can only partially be mitigated
+by using the original data in a portion of the con-
+tinued pretraining mix: Ke et al. (2023) discuss
+masking updates to the neurons most instrumen-
+tal for general-domain performance, and Wu et al.
+
+Study
+Domain
+Model Parameter Count
+Total num Tokens
+
+(2024) show that growing the model by introducing
+additional layers, followed by only training these
+layers can avoid catastrophic forgetting. In contrast,
+newer work such as Ke et al. (2025) is more cen-
+tered on an optimal data composition, proposing
+a mix of continued pretraining data and mixed-in
+instruction data.
+
+In the e-commerce domain, Peng et al. (2024)
+as well as Li et al. (2024) focus exclusively on
+instruction tuning, while our work is the first to
+consider continued pretraining on domain-relevant
+data. For other domains, please refer to Table 1.
+
+3
+Setup, Data and Evaluation
+
+3.1
+Training Framework and Hardware
+
+For training, we use the Megatron-LM framework
+from NVIDIA (Shoeybi et al., 2019; Narayanan
+et al., 2021). Training was conducted using 60
+nodes, each having 8 NVIDIA H100 80GB GPUs
+(a total of 480 GPUs). The GPUs are connected
+via NVIDIA NVLink (intra-node) and InfiniBand
+(inter-node). The hardware is part of the eBay
+compute platform.
+
+3.2
+Data
+
+Regarding training data, we mostly follow Herold
+et al. (2024). For general domain data, we use
+a mixture of web-crawled and smaller but more
+high quality datasets. We include 10% non-English
+general domain data in the data mix. Regarding
+the e-commerce domain, we employ several data
+sources. On the one hand, we utilize listings and
+product reviews from the eBay website, as has been
+
+1040

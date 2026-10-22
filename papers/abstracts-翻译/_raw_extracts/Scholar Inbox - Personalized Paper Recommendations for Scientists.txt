@@ -1,0 +1,254 @@
+Markus Flicke
+Glenn Angrabeit
+Madhav Iyengar
+Vitalii Protsenko
+Illia Shakun
+Jovan Cicvaric
+Bora Kargi
+Haoyu He
+Lukas Schuler
+Lewin Scholz
+Kavyanjali Agnihotri
+Yong Cao
+Andreas Geiger
+
+Abstract
+
+Scholar Inbox is a new open-access platform
+designed to address the challenges researchers
+face in staying current with the rapidly expand-
+ing volume of scientific literature. We pro-
+vide personalized recommendations, continu-
+ous updates from open-access archives (arXiv,
+bioRxiv, etc.), visual paper summaries, seman-
+tic search, and a range of tools to streamline
+research workflows and promote open research
+access. The platform’s personalized recom-
+mendation system is trained on user ratings,
+ensuring that recommendations are tailored to
+individual researchers’ interests. To further
+enhance the user experience, Scholar Inbox
+also offers a map of science that provides an
+overview of research across domains, enabling
+users to easily explore specific topics. We use
+this map to address the cold start problem com-
+mon in recommender systems, as well as an
+active learning strategy that iteratively prompts
+users to rate a selection of papers, allowing
+the system to learn user preferences quickly.
+We evaluate the quality of our recommendation
+system on a novel dataset of 800k user ratings,
+which we make publicly available, as well as
+via an extensive user study.
+
+1
+Introduction
+
+The exponential growth of scientific publications
+has posed significant challenges for both junior
+and senior researchers to stay up-to-date with the
+latest relevant works (Fortunato et al., 2018; Zheng
+et al., 2024). This motivated the development of
+academic recommenders, which offer personalized
+paper recommendation services, aiming to promote
+the discovery of relevant works and enhance the
+efficiency of the research cycle.
+
+However, despite these efforts, current platforms
+often fail to fully meet user requirements. For ex-
+ample, many researchers rely on platforms like X1,
+
+1www.x.com
+
+Scholar Inbox: Personalized Paper Recommendations for Scientists
+
+University of Tübingen, Tübingen AI Center
+
+www.scholar-inbox.com
+
+Scholar Maps
+Personalized Recommendation
+
+Publishers
+
+3D Motion
+
+Daily Crawl
+
+Rate
+
+Deliver
+
+Language
+
+Agents
+
+Embed
+
+Collections & Search
+Conference Planner
+
+Topic
+Collection
+
+Semantic
+
+Text Query
+
+Ranking
+of Posters
+
+or
+
+Semantic
+
+Ranking
+
+Plan your
+poster session
+
+Similar
+Papers
+
+Figure 1: Key features of Scholar Inbox, including Per-
+sonalized Recommendations tailored to individual inter-
+ests, Scholar Maps for cross-domain paper exploration,
+Collections for literature review and exploration of new
+research areas, and Conference Planner for efficient
+time prioritization at conference poster sessions.
+
+ResearchGate2 or LinkedIn3 for paper recommen-
+dations, which implicitly introduce biases towards
+popular authors and institutions via the Matthew
+effect (Perc, 2014; Färber et al., 2023). Further-
+more, where personalized recommendations are
+offered, they are typically based on broadly defined
+topics (Wang, 2025), leading to an inaccurate un-
+derstanding of user interests and thus suboptimal
+paper recommendations (Li et al., 2021).
+
+In this paper, we present Scholar Inbox, a pub-
+licly available open-access platform with more ac-
+curate personalized recommendations and a wide
+range of functionalities for researchers, aiming
+
+2www.researchgate.net
+3www.linkedin.com
+
+307
+
+Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 3: System Demonstrations), pages 307–317
+
+July 27 - August 1, 2025 ©2025 Association for Computational Linguistics
+
+
+to enhance research efficiency and promote open-
+access publications. As shown in Fig. 1, the ad-
+vantages of Scholar Inbox primarily include four
+aspects: (1) Personalized Recommendations: We
+train a recommendation model for each researcher
+based on their positive and negative ratings during
+registration and while visiting our website. Unlike
+social media recommendations, our recommenda-
+tions are only based on the paper content and there-
+fore unbiased by social factors. (2) Scholar Maps:
+To facilitate exploration of papers across domains,
+we project all papers into a two-dimensional space
+based on their semantic representations, allowing
+users to easily search and discover research. (3)
+Collections and Search: We enable users to ex-
+plore papers that are semantically similar to their
+collections and search similar papers based on free-
+form text descriptions. (4) Conference Planner:
+For large conferences, we offer a planner that helps
+users prioritize their time at poster sessions.
+
+Besides offering a range of functionalities, we in-
+troduce a content-based recommendation model for
+research papers, provide a demonstration video4,
+and release our dataset5 of anonymized user ratings
+to support and facilitate future research on scien-
+tific recommender systems. In the following sec-
+tions, we summarize existing academic platforms
+(§2), present the system architecture of Scholar In-
+box (§3), and provide comprehensive evaluations,
+demonstrating its ability to deliver better recom-
+mendations and enhance user satisfaction (§4).
+
+2
+Related Work
+
+Scientific Paper Recommendation Platforms: To
+meet growing research demands, support systems
+such as search engines, exploratory tools, and rec-
+ommenders have emerged. Search engines like
+Google Scholar and Semantic Scholar rely on user-
+provided keywords. Research interests are however
+often multi-faceted and many new researchers are
+unaware of which terms accurately describe their
+desired search results. Exploratory tools such as
+Connected Papers6 and Research Rabbit7 fill this
+gap by visualizing citation graphs as 2D maps to
+show related papers to the user. Additionally, se-
+mantic paper maps of research have been created
+using t-SNE (González-Márquez et al., 2022).
+
+4https://youtu.be/4fgM-iJgXJs
+5github.com/avg-dev/scholar_inbox_datasets
+6www.connectedpapers.com
+7www.researchrabbit.ai
+
+Recommendation Algorithms: Beyond explo-
+ration, researchers must read the latest research
+to stay relevant in their field and to avoid dupli-
+cate research.
+A plenitude of research recom-
+menders have been proposed, but no system has so
+far achieved widespread adoption. Content-based
+filtering (CB) recommendation systems (Karpa-
+thy, 2025; Wang et al., 2018; Patra et al., 2020;
+Kart et al., 2022) generate recommendations purely
+using item information, but have been refined to
+include user interactions (Mohamed et al., 2022;
+Guan et al., 2010) and bibliographic information
+(Ma et al., 2021; Wang et al., 2018). Many imple-
+mentations prefer sparse Term Frequency Inverse
+Document Frequency (TF-IDF) (Jones, 1972) em-
+beddings over dense learning-based embeddings,
+due to their simplicity and lower runtime (Zhang
+et al., 2023; Hassan et al., 2019). Our ablation
+study corroborates that TF-IDF performs well for
+the research recommendation task, however we
+find that state-of-the-art distributed representations
+such as GTE (Li et al., 2023) outperform sparse
+embeddings in terms of vote prediction accuracy.
+A known limitation of CB recommendation sys-
+tems is the filter bubble effect (Portenoy et al.,
+2022) and diversity, novelty and serendipity have
+been identified as current limitations (Kreutz and
+Schenkel, 2022; Ali et al., 2021; Bai et al., 2019;
+Nguyen et al., 2014). In contrast, collaborative
+filtering (CF) derives recommendations from mul-
+tiple users’ interests and current approaches differ
+by whether they utilize author information (Utama
+et al., 2023; Neethukrishnan and Swaraj, 2017), use
+interactions (Murali et al., 2019; Xia et al., 2014)
+or bibliographic information (Sakib et al., 2020;
+Haruna et al., 2017; Liu et al., 2015).
+Recent work focuses on hybrid systems, incor-
+porating CB and CF into two-tower architectures
+(Church et al., 2024; Yi et al., 2019) or graph based
+approaches (Wang et al., 2024; Ostendorff et al.,
+2022; Cohan et al., 2020). CB, CF and hybrid
+approaches all suffer from the cold start problem
+for recommendation systems, as the recommender
+is uninformed about user preferences when they
+begin to use the system (Bai et al., 2019). There
+have been many attempts to alleviate this problem
+(Nura and Hamisu, 2024), for instance by upload-
+ing bibtex files from a reference manager (Kart
+et al., 2022). Scholar Inbox mitigates the cold start
+problem through a user-friendly onboarding pro-
+cess and an active learning strategy.
+
+308

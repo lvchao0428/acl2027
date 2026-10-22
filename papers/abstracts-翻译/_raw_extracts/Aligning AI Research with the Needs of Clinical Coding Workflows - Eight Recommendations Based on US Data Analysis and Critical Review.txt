@@ -1,0 +1,212 @@
+Abstract
+
+Clinical coding is crucial for healthcare billing
+and data analysis. Manual clinical coding is
+labour-intensive and error-prone, which has
+motivated research towards full automation of
+the process. However, our analysis, based on
+US English electronic health records and au-
+tomated coding research using these records,
+shows that widely used evaluation methods are
+not aligned with real clinical contexts. For ex-
+ample, evaluations that focus on the top 50
+most common codes are an oversimplification,
+as there are thousands of codes used in practice.
+This position paper aims to align AI coding re-
+search more closely with practical challenges
+of clinical coding. Based on our analysis, we
+offer eight specific recommendations, suggest-
+ing ways to improve current evaluation meth-
+ods. Additionally, we propose new AI-based
+methods beyond automated coding, suggesting
+alternative approaches to assist clinical coders
+in their workflows.
+
+1
+Introduction
+
+Clinical coding is a process that transforms clini-
+cal notes into a set of alphanumeric codes, which
+represent diagnoses and procedures during medical
+visits. This process is essential to tasks like hospi-
+tal billing and disease prevalence studies. Manual
+clinical coding is labour-intensive and error-prone
+(Karimi et al., 2017; Li and Yu, 2020). To address
+these issues, automated coding has been widely
+explored. While many existing studies frame it
+as a multi-label classification task (Mullenbach
+et al., 2018; Vu et al., 2020; Huang et al., 2022;
+Li et al., 2023), no analysis has examined whether
+that matches the needs of clinicians.
+
+This position paper critically reviews automated
+coding studies based on multi-label classification,
+focusing on those using the public US Medical
+Information Mart for Intensive Care (MIMIC)
+datasets (Goldberger et al., 2000; Johnson et al.,
+
+Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers), pages 909–922
+
+Aligning AI Research with the Needs of Clinical Coding Workflows:
+Eight Recommendations Based on US Data Analysis and Critical Review
+
+Yidong Gan1, 2, Maciej Rybinski2, 3, Ben Hachey1, 4, Jonathan K. Kummerfeld1
+
+1The University of Sydney
+2CSIRO Data61
+3The University of Málaga
+4Beamtree
+yidong.gan@sydney.edu.au
+
+2016, 2023). For consistency, we use the clini-
+cal term ‘code’ instead of ‘label’ throughout this
+paper. We focus on the MIMIC datasets as they
+are far larger than other public datasets. Specifi-
+cally, MIMIC provides English electronic health
+records of acute and emergent inpatients, with the
+latest version, MIMIC-IV, including 331,675 pa-
+tient admissions. The few other public datasets,
+such as those released by Pestian et al. (2007) and
+Miranda-Escalada et al. (2020), contain 978 and
+1,000 admissions, respectively. This significant
+scale difference allows MIMIC to cover a broader
+range of diagnoses and procedures, making it more
+suitable for comprehensive analyses.
+
+We show that current evaluations do not align
+with the needs of clinical contexts. In practice,
+coders must select from over a thousand codes
+and sequence them correctly (CMS and NCHS,
+2024), yet many studies use smaller code sets and
+overlook code sequencing in evaluation. Addi-
+tionally, the Area Under the Receiver Operating
+Characteristic Curve (AUC-ROC) is often the only
+threshold-independent metric reported, which is
+inappropriate given the imbalanced code distribu-
+tion. Common human coding metrics like Exact
+Match Ratio and Jaccard Score are often omitted,
+making it difficult to measure the accuracy gap
+between automated and human coding. In other
+words, widely used evaluation strategies do not
+measure what truly matters for clinical application.
+
+We then propose new methodologies to support
+clinical coders rather than automating the entire
+process. Given the limited effectiveness of auto-
+mated coding (Edin et al., 2023), manual coding
+with software assistance remains prevalent, with
+code auditing essential in clinical workflows to re-
+duce errors. Despite its significance, research on
+AI-assisted coding and auditing is limited. This un-
+derscores the need for future studies in these areas,
+which have the potential to yield practical solutions
+sooner than fully automated coding.
+
+909
+
+July 27 - August 1, 2025 ©2025 Association for Computational Linguistics
+
+
+2
+Clinical Coding Workflow
+
+In this section, we present a typical clinical coding
+workflow in an inpatient setting, outline the indi-
+vidual coding processes, and provide an overview
+of the current state-of-the-art strategies and tools
+used in these processes. The workflow presented
+is specific to the US context; other countries may
+have similar or different processes.
+
+The upper diagram in Figure 1 outlines a high-
+level, four-step clinical coding workflow for an
+inpatient episode. First, a patient is admitted to the
+hospital. During care, all relevant documentation
+(e.g., pathology reports) is entered into their Elec-
+tronic Health Record (EHR). Upon discharge, the
+attending doctor writes a summary detailing the
+patient’s stay, including diagnosis and treatment.
+Clinical coders then assign International Classifi-
+cation of Diseases (ICD) codes based on the EHR.
+For reimbursement purposes, relevant ICD codes
+are grouped into a Diagnosis Related Group (DRG)
+code. DRG is a classification system that organises
+hospital cases into groups; each DRG has a spe-
+cific payment rate based on the average resources
+needed to treat patients in that group. The lower
+diagram in Figure 1 gives additional details of the
+ICD coding task, illustrating the processes before
+and after coding episodes with ICD.
+
+The implementation of ICD and DRG varies
+across countries, and the coding inputs can dif-
+fer depending on healthcare settings (e.g., hospital
+policies). Previous AI coding studies often use
+discharge summaries as inputs but have also ex-
+plored other sources, such as radiology reports (Pes-
+tian et al., 2007) and multilingual death certificates
+(Névéol et al., 2018). Given all these differences, it
+is important that AI coding research carefully con-
+siders the clinical coding workflow it is addressing.
+Of note, many references in the following subsec-
+tion are corporate products, as previous research
+has largely focused on the automated coding ap-
+proach in the clinical coding workflow.
+
+2.1
+Task Allocation
+
+With many hospitals facing backlogs of uncoded
+
+cases (Alonso et al., 2020), optimising task allo-
+cation is crucial. The order in which cases are
+processed depends on hospital-specific business
+metrics, such as maximising profit and reducing
+backlog. Tools like Beamtree’s Q Coding plat-
+form (Beamtree, 2024) support task forecasting,
+rule-based distribution, and scheduling, enabling
+
+Figure 1: Typical clinical coding workflow for an inpa-
+tient episode of care in the US.
+
+hospitals to address backlogs systematically and
+ensure critical cases are handled promptly.
+
+After determining case priority, the next step is
+to allocate cases to the appropriate expert. In as-
+sisted coding (i.e., manual coding with computer
+software support), assigning cases based on coder
+specialty or experience effectively manages the
+complexity of coding tasks (Alonso et al., 2020;
+Beamtree, 2024). Likewise, with AI-based coding
+solutions, cases could be assigned to either assisted
+or automated coding pathways. This step is specu-
+lative and will be discussed further in Section 3.
+
+2.2
+Assisted Coding
+
+In assisted coding, where coders use computer soft-
+ware to manually enter codes, each keystroke, word
+read, and thought incurs a cost. By minimising the
+manual effort involved, these tasks become more
+efficient. This promise of higher efficiency has mo-
+tivated health tech companies to develop various
+assisted coding tools.
+
+Existing tools include features such as searching
+and navigating codes with integrated guidelines,
+which help users quickly find relevant codes and
+follow best practices (Beamtree, 2024; 3M, 2024d).
+AI-suggested codes and DRG grouping helps in
+streamlining the coding process (Beamtree, 2024;
+3M, 2024b,d). Customisable rules allow users to
+automate coding based on criteria drawn from their
+expertise (3M, 2024b). Online audits against or-
+ganisational policies ensure quality control (3M,
+2024a). Evidence linking for assigned codes facili-
+tates efficient edits and reviews (Goinvo, 2024; 3M,
+2024c). Collectively, these features contribute to a
+more efficient and cost-effective coding workflow.
+
+910

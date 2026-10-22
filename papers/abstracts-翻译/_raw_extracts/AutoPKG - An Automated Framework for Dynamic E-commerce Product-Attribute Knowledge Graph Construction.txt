@@ -1,0 +1,376 @@
+AutoPKG: An Automated Framework for Dynamic E-commerce
+
+Pollawat Hongwimol1, Haoning Shang1, Chutong Wang1,
+Zhichao Wan1, Yi Gao1, Yuanming Li1, Lin Gui1, Wenhao Sun2, Cheng Yu1
+
+Abstract
+
+Product attribute extraction in e-commerce is
+bottlenecked by ontologies that are inconsis-
+tent, incomplete, and costly to maintain. We
+present AutoPKG, a multi-agent Large Lan-
+guage Model (LLM) framework that automati-
+cally constructs a Product-attribute Knowledge
+Graph (PKG) from multimodal product con-
+tent. AutoPKG induces product types and type-
+specific attribute keys on demand, extracts at-
+tribute values from text and images, and con-
+solidates updates through a centralized deci-
+sion agent that maintains a globally consistent
+canonical graph. We also propose an evalu-
+ation protocol for dynamic PKGs that mea-
+sures type/key validity and consolidation qual-
+ity, as well as edge-level accuracy for value
+assertions after canonicalization. On a large
+real-world marketplace catalog dataset from
+Lazada (Alibaba), AutoPKG achieves up to
+0.953 Weighted Knowledge Efficiency (WKE)
+for product types, 0.724 WKE for attribute
+keys, and 0.531 edge-level F1 for multimodal
+value extraction. Across three public bench-
+marks, we improve edge-level exact-match F1
+by 0.152 and yield a 0.208 precision gain on
+the attribute extraction application. Online A/B
+tests show that AutoPKG-derived attributes in-
+crease Gross Merchandise Value (GMV) in
+Badge (+3.81%), Search (+5.32%), and Recom-
+mendation (+7.89%), supporting AutoPKG’s
+practical value in production.
+
+1
+Introduction
+
+Product attributes serve as critical e-commerce in-
+frastructure by powering faceted navigation, im-
+proving search relevance, and supporting recom-
+mendation and facilitating semantic product under-
+standing at scale (Subramaniam, 2025; Magnani
+et al., 2022; Wang et al., 2019). However, indus-
+trial attribute pipelines remain bottlenecked by the
+schema, as product taxonomies and type-specific
+attribute keys are often inconsistent across markets
+and incomplete for long-tail inventory (Xu et al.,
+
+Product-Attribute Knowledge Graph Construction
+
+1Lazada, Alibaba International Digital Commerce Group
+2Nanyang Technological University, Singapore
+{pollwat.h, shanghaoning.shn, wangchutong.wct, wanzhichao.wzc,
+xiheng.gy}@alibaba-inc.com, yli056@e.ntu.edu.sg, lin.gui@u.nus.edu,
+
+wenhao006@ntu.edu.sg, yucheng.yc@lazada.com
+
+2019; Zhu et al., 2020). Furthermore, it is costly
+to maintain under continuous distribution shift and
+multilingual seller noise (Xu et al., 2019; Dong
+et al., 2020). Consequently, even strong Product At-
+tribute Value Extraction (PAVE) models frequently
+operate under outdated or overly narrow attribute
+lists, which limits coverage and necessitates re-
+peated human ontology work (Zheng et al., 2018;
+Putthividhya and Hu, 2011).
+
+Table 1 highlights a gap in existing work. While
+prior e-commerce Knowledge Graph (KG) frame-
+works such as AutoKnow, AliCG, and COSMO
+demonstrate large-scale construction pipelines,
+they typically assume or rely on a governed schema
+while focusing less on open-ended type/key induc-
+tion, multimodal evidence, and continual update.
+Similarly, open datasets and benchmarks including
+OpenTag, AE-110K, MEPAVE, MAVE, and Im-
+plicitAVE have advanced PAVE models. However,
+these resources do not address dynamic schema
+evolution and canonical KG maintenance as a first-
+class problem. Furthermore, general-purpose LLM-
+based schema/KG induction frameworks such as
+AutoSchemaKG are not tailored to the specific con-
+straints of e-commerce product attributes. Cru-
+cially, no prior open framework jointly supports
+automatic type induction (AT), automatic key
+discovery (AK), and multimodal value extrac-
+tion (MM) within a continually updated PKG.
+
+We present AutoPKG, an automated multi-
+agent LLM framework (Guo et al., 2024) that
+constructs and continually evolves a PKG from
+multimodal marketplace listings. Starting from
+an empty KG, AutoPKG induces PRODUCTTYPE
+nodes on demand and proposes type-specific AT-
+
+TRIBUTEKEY nodes. It then extracts attribute val-
+ues from text and multiple images, finally consol-
+idating all updates into a PKG. A key design el-
+ement is the centralized Knowledge Graph Deci-
+sion agent (abbreviated as KGD throughout this
+paper), which acts as the sole write interface to
+
+15622
+
+Findings of the Association for Computational Linguistics: ACL 2026, pages 15622–15650
+
+July 2-7, 2026 ©2026 Association for Computational Linguistics
+
+
+Frameworks / Systems (construct & maintain a KG)
+
+AutoKnow (Dong et al., 2020)
+Framework
+Closed
+E-commerce
+>1B
+>1B
+11K
+>1K
+✓
+✓
+✗
+AliCG (Zhang et al., 2021)
+Framework
+Closed
+E-commerce
+>5M
+13.5M
+–
+–
+✓
+✓
+✗
+FolkScope (Yu et al., 2023)
+Framework
+Open
+E-commerce
+1.3M
+12.8M
+–
+–
+✗
+✓
+✗
+COSMO (Yu et al., 2024)
+Framework
+Closed
+E-commerce
+6.3M
+29M
+18
+–
+✓
+✓
+✗
+AutoSchemaKG (Bai et al., 2025)
+Framework
+Open
+General
+900M
+5.9B
+–
+–
+✓
+✓
+✗
+
+KG Resources (released graphs)
+
+AliCoCo (Luo et al., 2020)
+KG Resource
+Closed
+E-commerce
+>3B
+>400B
+–
+20
+✗
+✗
+✗
+AliCoCo2 (Luo et al., 2021)
+KG Resource
+Closed
+E-commerce
+>160M
+>800M
+–
+20
+✗
+✗
+✗
+MMpedia (Wu et al., 2023)
+KG Resource
+Open
+General
+2.6M
+19.5M
+–
+–
+✗
+✗
+✓
+MedKGent (Zhang et al., 2025)
+KG Resource
+Open
+Medical
+156K
+3.0M
+–
+–
+✗
+✓
+✗
+
+Datasets / Benchmarks (PAVE)
+
+OpenTag (Zheng et al., 2018)
+Dataset
+Partial
+E-commerce
+–
+13K
+3
+5
+✗
+✓
+✗
+AE-110K (Xu et al., 2019)
+Dataset
+Open
+E-commerce
+–
+110K
+1
+4
+✗
+✗
+✗
+MEPAVE (Zhu et al., 2020)
+Dataset
+Open
+E-commerce
+121K
+87K
+7
+26
+✗
+✗
+✓
+MAVE (Yang et al., 2022)
+Dataset
+Open
+E-commerce
+>2M
+3M
+1.3K
+2.5K
+✗
+✗
+✗
+ImplicitAVE (Zou et al., 2024a)
+Dataset
+Open
+E-commerce
+70K
+–
+5
+25
+✗
+✗
+✓
+
+AutoPKG (Ours)
+Framework
+Open
+E-commerce
+130K
+560K
+17K
+16K
+✓
+✓
+✓
+
+the KG. Upstream agents propose edits, whereas
+KGD resolves them through a constrained ac-
+tion space (ADD/MERGE/REPLACE/DISCARD) using re-
+trieved PKG context. This approach is similar in
+spirit to validator-based KG construction but oper-
+ationalized as explicit edit decisions to ensure con-
+tinual canonicalization (Boylan et al., 2024; Bian,
+2025).
+We also introduce an evaluation protocol for dy-
+namic PKGs that measures validity and consolida-
+tion quality for induced product types and attribute
+keys, as well as edge-level precision/recall/F1
+for value assertions after canonicalization.
+On
+our large real-world catalog dataset, AutoPKG
+achieves up to 0.953 WKE for product types,
+0.724 WKE for attribute keys, and 0.531 edge-
+level F1 for multimodal value extraction.
+On-
+line A/B tests further demonstrate production im-
+pact: AutoPKG-derived attributes improve GMV
+in Badge (+3.81%), Search (+5.32%), and Recom-
+mendation (+7.89%), while delivering no statisti-
+cally significant change in Filter (+0.26%). Further-
+more, across three public benchmarks, AutoPKG
+improves edge level exact-match F1 by +0.152
+and yields a +0.208 (weighted average) precision
+gain in the downstream PAVE application.
+
+The contributions of this paper are as follows:
+
+• We propose AutoPKG, the first automated
+multi-agent framework that unifies automatic
+type induction, key discovery, and multi-
+modal value extraction within an incremen-
+
+Name
+Type
+Available
+Domain
+#Nodes
+#Edges
+#Types
+#Attrs
+AT
+AK
+MM
+
+Table 1: Comparison of relevant frameworks, resources and datasets. #Types and #Attrs denote the number of
+product categories and unique attribute keys, respectively. AT: automatic type induction; AK: automatic key
+discovery; MM: multimodal value extraction.
+
+tally evolving PKG, eliminating the need for
+a fixed, manually maintained taxonomy.
+
+• We introduce a comprehensive evaluation
+protocol for dynamic PKGs that goes be-
+yond standard knowledge extraction metrics,
+specifically measuring schema validity and
+consolidation quality alongside traditional
+edge-level correctness.
+
+• We release a large-scale multimodal dataset
+comprising 37K Lazada online products and
+its corresponding KG with 130K nodes and
+560K edges across 17K product types. This
+is the most diverse open-source dataset for
+e-commerce PAVE that supports multi-image
+reasoning and automatic schema induction.
+
+2
+Related Work
+
+KG/PKG Construction and Schema Evolution.
+Industrial e-commerce KGs/PKGs are typically
+built via large-scale extraction plus canonicaliza-
+tion and governance, often emphasizing pipeline
+scalability rather than open-ended schema evolu-
+tion (Dong et al., 2020; Zhang et al., 2021; Yu et al.,
+2024). In parallel, research benchmarks have ac-
+celerated extraction modeling but usually assume a
+predefined label space and do not evaluate contin-
+ual schema growth (Zheng et al., 2018; Zou et al.,
+2024a). Work on LLM-based KG construction has
+recently explored schema induction and iterative
+
+15623

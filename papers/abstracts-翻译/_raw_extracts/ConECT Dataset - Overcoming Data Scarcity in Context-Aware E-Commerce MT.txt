@@ -1,0 +1,217 @@
+Abstract
+
+Neural Machine Translation (NMT) has im-
+proved translation by using Transformer-based
+models, but it still struggles with word ambigu-
+ity and context. This problem is especially im-
+portant in domain-specific applications, which
+often have problems with unclear sentences
+or poor data quality. Our research explores
+how adding information to models can improve
+translations in the context of e-commerce data.
+To this end we create ConECT– a new Czech-to-
+Polish e-commerce product translation dataset
+coupled with images and product metadata con-
+sisting of 11,400 sentence pairs. We then inves-
+tigate and compare different methods that are
+applicable to context-aware translation. We test
+a vision-language model (VLM), finding that
+visual context aids translation quality. Addi-
+tionally, we explore the incorporation of contex-
+tual information into text-to-text models, such
+as the product’s category path or image descrip-
+tions. The results of our study demonstrate
+that the incorporation of contextual informa-
+tion leads to an improvement in the quality of
+machine translation. We make the new dataset
+publicly available.1
+
+1
+Introduction
+
+Neural Machine Translation (NMT) has signifi-
+cantly advanced the field of machine translation
+by leveraging Transformer-based models (Bah-
+danau et al., 2015; Vaswani et al., 2017b). These
+models have been critical in enhancing translation
+quality, particularly by incorporating mechanisms
+such as cross-attention to achieve better semantic
+understanding. However, despite these improve-
+ments, sentence-level translation in NMT often
+struggles with issues such as contextual disam-
+biguation (Rios Gonzales et al., 2017). For ex-
+ample, the word “pen” can refer to a writing in-
+strument or an enclosure for animals, depending on
+
+1https://huggingface.co/datasets/allegro/
+ConECT
+
+ConECT Dataset: Overcoming Data Scarcity in Context-Aware E-Commerce
+
+MT
+
+Mikołaj Pokrywka1,2
+Wojciech Kusa1,3
+Mieszko Rutkowski1
+Mikołaj Koszowski1
+
+1Machine Learning Research Allegro.com
+2Laniqo.com
+3NASK
+
+Correspondence: {name}.{surname}@allegro.com
+
+Figure 1: We evaluate three methods for contextualisa-
+tion in e-commerce MT: (1) combining images with text
+in VLM, (2) appending category path context in NMT,
+and (3) a cascade approach consisting of a vision Q&A
+and a text-to-text NMT.
+
+the context. These ambiguities present a significant
+challenge in achieving accurate translations based
+solely on the context of single sentences.
+
+In an attempt to address these limitations, Multi-
+modal Machine Translation (MMT) has emerged
+as a promising paradigm (Specia et al., 2016; Shen
+et al., 2024). MMT integrates visual information
+alongside textual data to provide additional context,
+thereby enhancing translation quality. Studies have
+shown that leveraging visual cues can significantly
+improve the disambiguation of lexical items and
+contribute to more accurate translations (Yao and
+Wan, 2020; Wang and Xiong, 2021). For instance,
+visual context can help resolve ambiguities in sen-
+tences where the textual information alone is in-
+sufficient (Liu et al., 2021). However, high-quality
+machine translation training data with aligned im-
+ages is available only for a fraction of the parallel
+corpora.
+
+In this work, we explore the effectiveness of inte-
+grating context information into a domain-specific
+translation task. We create a new testset for Czech-
+
+79
+
+Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 2: Short Papers), pages 79–86
+
+July 27 - August 1, 2025 ©2025 Association for Computational Linguistics
+
+
+to-Polish translation in e-commerce, and test three
+approaches for context-aware MT (Figure 1). We
+fine-tune and evaluate a VLM, as well as tradi-
+tional NMT models for which we integrate con-
+textual information as special instruction tokens.
+Our findings demonstrate that visual context can
+enhance translation quality in domain-specific sce-
+narios, serving as a valuable additional feature.
+
+Our contributions are as follows:
+
+• We release a new multimodal dataset for e-
+commerce MT for the under-researched cs-pl
+language pair;
+
+• We fine-tune and evaluate a VLM on the
+domain-specific MT task;
+
+• We propose a method for encoding category
+paths and image descriptions in small NMT
+models.
+
+We start by describing related work (§2), then
+introduce the ConECT dataset (§3), explain our ex-
+perimental setup (§4), and finally discuss the results
+(§5).
+
+2
+Related work
+
+In this section we discuss multimodal and e-
+commerce product-oriented MT.
+
+2.1
+Multimodal Machine Translation
+
+Multimodal Machine Translation (MMT), which in-
+tegrates visual context into machine translation, has
+garnered significant attention in recent years (El-
+liott et al., 2016; Shen et al., 2024). Research has
+shown that visuals can effectively bridge linguistic
+gaps between languages (Chen et al., 2019; Sig-
+urdsson et al., 2020; Su et al., 2019). Early efforts
+by Calixto and Liu (2017) incorporated global im-
+age features into the encoder or decoder of NMT
+models. Subsequent studies have explored the use
+of more granular image contexts, such as spatial
+image regions with attention mechanisms (Calixto
+et al., 2017a; Caglayan et al., 2016).
+
+Yang et al. (2020) introduced a method for joint
+training of source-to-target and target-to-source
+models to promote visual agreement. Yin et al.
+(2020) built a multi-modal graph linking image
+objects and source words, leveraging an external
+visual grounding model for alignment.
+
+2.2
+Benchmarks and Shared Tasks in MMT
+
+Between 2016 and 2018, WMT organised a shared
+task on MMT (Specia et al., 2016; Elliott et al.,
+2017; Barrault et al., 2018). The organisers primar-
+ily used the Multi30K dataset (Elliott et al., 2016)
+and metrics like BLEU, METEOR, and TER. In
+the first edition of the shared task, Specia et al.
+(2016) found that neural MMT models initially un-
+derperformed compared to text-only SMT models.
+However, Elliott et al. (2017) and Barrault et al.
+(2018) expanded languages and test datasets, not-
+ing performance improvements in MMT models,
+especially when incorporating external resources.
+
+Elliott (2018) introduced an adversarial evalua-
+tion method to assess whether multimodal transla-
+tion systems effectively utilize visual context. This
+method evaluates the performance difference of a
+system when provided with either a congruent or
+an incongruent image as additional context.
+
+Futeral et al. (2023) introduced the CoMMuTE
+(Contrastive Multilingual Multimodal Translation
+Evaluation) dataset to evaluate multimodal ma-
+chine translation systems with a focus on resolving
+ambiguity using images. Their approach, which in-
+cludes neural adapters and guided self-attention,
+showed significant improvement over text-only
+models, particularly in English–French, English–
+German, and English–Czech translations. Futeral
+et al. (2024) extended the setup with ZeroMMT,
+a technique for zero-shot multimodal machine
+translation that does not rely on fully supervised
+data. This method, which uses visually conditioned
+masked language modelling and Kullback-Leibler
+divergence training, demonstrated near state-of-the-
+art performance and was extended to Arabic, Rus-
+sian, and Chinese.
+
+2.3
+E-commerce product-oriented MT
+
+An e-commerce product-oriented machine transla-
+tion task uses product images and product meta-
+data as inputs. Calixto et al. (2017c) pioneered this
+task with a bilingual product description dataset,
+evaluating models such as phrase-based statistical
+MT (PBSMT), text-only MT, and MMT. Their re-
+sults highlighted PBSMT’s superior performance,
+with MMT models enhancing translation when re-
+ranking PBSMT outputs. Calixto et al. (2017b)
+highlight the potential impact of multi-modal NMT
+in the context of e-commerce product listings. With
+only a limited amount of multimodal and multi-
+lingual training data available, both text-only and
+
+80

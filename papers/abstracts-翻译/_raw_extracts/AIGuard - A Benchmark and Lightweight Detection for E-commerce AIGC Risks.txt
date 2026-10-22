@@ -1,0 +1,276 @@
+AIGUARD: A Benchmark and Lightweight Detection
+
+Xiangyang Luo2, Chubin Zhuang3, Yongjie Hong3, Zhen Qin3,
+
+Hengyu Chang3, Chenliang Li1, Bo Zheng3†
+
+cllee@whu.edu.cn, bozheng@alibaba-inc.com
+
+Abstract
+
+Recent advancements in AI-generated content
+(AIGC) have heightened concerns about harm-
+ful outputs, such as misinformation and ma-
+licious misuse.
+Existing detection methods
+face two key limitations:
+(1) lacking real-
+world AIGC scenarios and corresponding risk
+datasets, and (2) both traditional and multi-
+modal large language models (MLLMs) strug-
+gle to detect risks in AIGC. Towards this
+end, we introduce AIGUARD, the ﬁrst bench-
+mark for AIGC risk detection in real-world
+e-commerce. It includes 253,420 image-text
+pairs (i.e., the risk content and risk descrip-
+tion) across four critical categories:
+abnor-
+mal body, violating physical laws, mislead-
+ing or illogical context, and harmful or prob-
+lematic message. To effectively detect these
+risks, we propose distilling text annotations
+into dense soft prompts and identifying risk
+content through image soft prompt matching
+during inference. Experiments on the bench-
+mark show that this method achieves a 9.68%
+higher recall than leading multimodal mod-
+els while using only 25% of the training re-
+sources and improving inference speed by 37.8
+times.
+For further research, our benchmark
+and code are available at https://github.
+com/wenh-zhang/aiguard-dataset.
+
+1
+Introduction
+
+Recent advancements in AIGC have signiﬁcantly
+improved creative workﬂows in text (Zhang et al.,
+2024; Achiam et al., 2023),
+image (Saharia
+et al., 2022; Koh et al., 2024), and video gener-
+ation (Blattmann et al., 2023; Liu et al., 2024c),
+demonstrating substantial commercial potential.
+
+*First three authors contributed equally.
+†Corresponding author.
+
+Findings of the Association for Computational Linguistics: ACL 2025, pages 12437–12450
+
+for E-commerce AIGC Risks
+
+Wenhua Zhang1∗, Weicheng Li1∗, Xuanrong Rao1*, Lixin Zou1†,
+
+1Key Laboratory of Aerospace Information Security and Trusted Computing, Ministry of Education,
+School of Cyber Science and Engineering, Wuhan University
+2State Key Laboratory of Mathematical Engineering and Advanced Computing, Zhengzhou, China
+3Taobao & Tmall Group of Alibaba, China
+{wenhuazhang_ncc, liweicheng, raoxuanrong, zoulixin}@whu.edu.cn, xiangyangluo@126.com,
+
+{bryant.zcb, hongyongjie.hyj, qinzhen.qz, hongbo}@taobao.com,
+
+Are there any abnormal human 
+struture in the picture?
+
+The person has
+abnormal feet.
+
+No, There are no obvious abnormalities in the
+human structure visible in this image ...
+
+Women's Sweater Dress
+
+Is there any illegal hidden 
+information in the picture?
+
+$4699
+
+10K+ bought in last month
+
+High Waisted Leggings
+
+Hidden text about "make
+fake certificate".
+
+$1199
+
+10K+ bought in last month
+
+There is no visible or explicit information
+suggesting any illegal hidden content...
+
+Are there any unreasonable phenomena such 
+as objects floating in the air in the picture?
+
+The knife is suspended in
+the air.
+
+Sharp Kitchen knife HC 
+
+Travel, self-service visa
+
+$599
+
+10K+ bought in last month
+
+$3299
+
+10K+ bought in last month
+
+Yes, there is an unreasonable phenomenon in
+the picture. The two knives leaning against the
+knife holder appear to be defying gravity ...
+
+Figure 1: Online E-commerce platforms with the risky
+AIGC content, e.g., “Abnormal foot” or “Make fake
+certiﬁcate”, that evade the system detection. However,
+current MLLMs lack knowledge and have limited capa-
+bility to detect the risk of AIGC content.
+
+According to the AI index report (Clark and Per-
+rault, 2024), in 2024, 42% of surveyed companies
+reduced their operating costs due to AI technology
+and 59% increased their revenue.
+For example,
+platforms like Google Ads1 and Alimama2 now
+use AI-power tools to automate creative processes
+that previously required weeks of human effort.
+
+While these systems offer signiﬁcant advan-
+tages, the associated risks require careful attention.
+On one hand, the inherent randomness of genera-
+tive models can lead to outputs such as hallucina-
+tions (Ji et al., 2023; Li et al., 2023b) or toxic con-
+tent (Wen et al., 2023; Smith et al., 2022), which
+can undermine reliability and erode user trust. On
+the other hand, these systems also pose the risk
+of being misused in illegal domains. For exam-
+ple, malicious users might exploit these systems to
+
+1https://ads.google.com/home/
+2https://www.alimama.com/index.htm
+
+12437
+
+July 27 - August 1, 2025 ©2025 Association for Computational Linguistics
+
+
+generate risky content that evades detection, such
+as biased materials or illegal items for criminal ac-
+tivities like selling counterfeit or regulated prod-
+ucts (Nadeem et al., 2021; Smith et al., 2022; Qu
+et al., 2023). As shown in Figure 1, real-world
+online e-commerce systems might contain AIGC
+risky content, such as “abnormal foot” and “make
+fake certiﬁcate”, which is too sophisticated to be
+detected by the system. These issues pose signif-
+icant threats to user safety, create legal risks for
+platforms, thus demanding immediate attention.
+
+The solutions to this challenge can be divided
+into two directions. The ﬁrst focus is on detect-
+ing real-world risky content, such as pornog-
+raphy, hate speech, or sensitive political mate-
+rial (Pavlopoulos et al., 2020; Ratkiewicz et al.,
+2011; Clarke et al., 2023). These approaches for
+this detection have evolved from rule-based meth-
+ods (Warner and Hirschberg, 2012; Gitari et al.,
+2015), to deep learning (Gambäck and Sikdar,
+2017; Markov et al., 2023), and now leverage pre-
+trained models and large language models (Cohen
+et al., 2023; Pan et al., 2023). However, AIGC
+risks, such as disproportion or object suspension,
+are more complex than risks like pornography or
+hate speech. Detecting these subtle issues requires
+more world knowledge of MLLMs.
+
+With the development of large language models
+(LLMs), the second focus is on controllable gen-
+eration, which aims to align models with human
+preferences and ethical guidelines. Due to the dif-
+ﬁculty of annotating training data, these methods
+primarily rely on reinforcement learning methods,
+such as reinforcement learning from human feed-
+back (Ouyang et al., 2022), process reward mod-
+eling (Lightman et al.), and group relative policy
+optimization (Shao et al., 2024; Mu et al., 2024).
+Consequently, the heavy computational demands
+of reinforcement learning limit their adaptability
+to intentional misuse by malicious users.
+
+The weakness of existing methods is pri-
+marily due to limitations in available datasets.
+Existing datasets often concentrate on speciﬁc
+model safety issues, such as evaluating hallucina-
+tions (Hartvigsen et al., 2022; Wang et al., 2023a;
+Li et al., 2023a) or detecting toxic content (Shen
+et al., 2025; Podolak et al., 2024; Tang et al.,
+2025), while overlooking sophisticated risks, such
+as hidden illegal messages or disharmonious back-
+ground.
+This narrow focus weakens detection
+methods.
+Additionally, MLLMs excel at under-
+standing real-world content but struggle to recog-
+
+nize risky AIGC outputs, as illustrated in Figure 1,
+where models like Qwen2-VL-7B fail to detect
+such risks. This limitation arises because MLLMs
+are primarily trained on standard real-world data
+and lack exposure to risky or adversarial AIGC ex-
+amples (Schuhmann et al., 2022).
+
+To address these challenges, we introduce AI-
+GUARD, the ﬁrst comprehensive benchmark for
+detecting risks in AIGC within real-world e-
+commerce scenarios. Our dataset comprises real-
+world adversarial examples and industrial risks
+(e.g., product ﬂaws), accompanied by expert anno-
+tations and detailed risk descriptions. It includes
+253,420 image-text pairs, with text descriptions
+categorizing risks into four critical types: abnor-
+mal body, violating physical laws, misleading or
+illogical context, and harmful or problematic mes-
+sage.
+We also propose a lightweight detection
+method based on the pre-trained BLIP model (Li
+et al., 2022). Risk detection is optimized by distill-
+ing human annotations into soft prompts through
+image soft prompt matching and causal risk de-
+coding tasks. During inference, risks are identiﬁed
+by matching images with the soft prompts, achiev-
+ing high accuracy at minimal computational cost.
+This approach enables efﬁcient detection of AIGC
+risks, conserving computational resources in real-
+world e-commerce applications.
+
+The contributions are summarized as follows:
+
+• Introduce AIGUARD, the ﬁrst comprehensive
+AIGC risk detection benchmark, compiling a
+dataset of 253,420 image-text pairs covering
+four critical risk categories (abnormal body, vio-
+lating physical laws, misleading or illogical con-
+text, harmful or problematic message).
+
+• Propose a lightweight detection method using a
+pre-trained BLIP model with the soft prompts,
+achieving high accuracy via image soft prompt
+matching while minimizing computational over-
+head for real-world applications.
+
+• Conduct extensive experiments on the bench-
+mark, identifying key challenges and highlight-
+ing critical research problems that merit further
+systematic investigation.
+
+2
+Related Work
+
+2.1
+Risk Detection Benchmarks
+
+Prior research on risk datasets has primarily fo-
+cused on text-based risks, such as pornogra-
+
+12438

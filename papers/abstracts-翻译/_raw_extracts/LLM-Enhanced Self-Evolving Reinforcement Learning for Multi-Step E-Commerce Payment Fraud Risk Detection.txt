@@ -1,0 +1,252 @@
+Abstract
+
+This paper presents a novel approach to e-
+commerce payment fraud detection by integrat-
+ing reinforcement learning (RL) with Large
+Language Models (LLMs). By framing trans-
+action risk as a multi-step Markov Decision
+Process (MDP), RL optimizes risk detection
+across multiple payment stages. Crafting effec-
+tive reward functions, essential for RL model
+success, typically requires significant human
+expertise due to the complexity and variability
+in design. LLMs, with their advanced reason-
+ing and coding capabilities, are well-suited to
+refine these functions, offering improvements
+over traditional methods. Our approach lever-
+ages LLMs to iteratively enhance reward func-
+tions, achieving better fraud detection accuracy
+and demonstrating zero-shot capability. Ex-
+periments with real-world data confirm the ef-
+fectiveness, robustness, and resilience of our
+LLM-enhanced RL framework through long-
+term evaluations, underscoring the potential of
+LLMs in advancing industrial RL applications.
+
+1
+Introduction
+
+The advancement of LLMs has been remarkable,
+exemplified by notable developments such as the
+top-notch model API (OpenAI, 2023) and state-of-
+the-art open-source models (Dubey et al., 2024)
+(Jiang et al., 2023) (Jiang et al., 2024) (Team et al.,
+2024) (Guo et al., 2024). These breakthroughs have
+propelled LLMs to new heights in various tasks,
+reaching or even surpassing human capabilities in
+code generation (Chen et al., 2021), logical reason-
+ing (Kojima et al., 2022), and task planning (Shen
+et al., 2024). The integration of these advanced
+capabilities into the domain of e-commerce pay-
+ment fraud detection presents an exciting frontier
+for exploration.
+
+Meanwhile, RL has shown its effectiveness in
+optimizing nondifferential goals and innovating
+
+*Corresponding Author.
+
+Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 6: Industry Track), pages 92–103
+
+LLM-Enhanced Self-Evolving Reinforcement Learning for Multi-Step
+
+E-Commerce Payment Fraud Risk Detection
+
+Bo Qu†*, Zhurong Wang†, Daisuke Yagi§, Zhen Xu‡, Yang Zhao†, Yinan Shan†, Frank Zahradnik†
+
+†eBay, ‡University of Chicago, §Etsy
+
+boqu@ebay.com
+
+decision strategies in response to environmental
+changes (Sutton and Barto, 2018) (Russell and
+Norvig, 2010). Its application in the financial fraud
+risk domain has seen various approaches, from
+modeling the sequence of transactions from a sin-
+gle credit card to considering each transaction as
+a discrete step in a MDP (Mead et al., 2018) (Vi-
+mal et al., 2021). Other studies have explored the
+application of RL in fraud risk alerting systems
+(Shen and Kurshan, 2020) and discussed its poten-
+tial without detailed propositions (El Bouchti et al.,
+2017). While supervised learning (SL) remains
+prevalent in static fraud detection, it struggles to
+model sequential dependencies between decision
+stages and directly optimize business metrics like
+precision-recall tradeoffs – limitations that RL nat-
+urally addresses through reward-driven optimiza-
+tion.
+
+The confluence of LLM’s semantic capabilities
+with RL has sparked interest, particularly in using
+LLMs as a reward shaper for RL. This innovative
+approach includes directly feeding the context of
+the environment to LLMs for action and reward
+processing (Kwon et al., 2023), using LLMs to de-
+fine the parameters of the reward function (Yu et al.,
+2023), or even to design whole rewards function
+codes (Ma et al., 2023). These efforts have mainly
+focused on gaming agents and robotic task control,
+inspiring our exploration into e-commerce payment
+fraud detection.
+
+E-Commerce payment fraud presents a dynamic
+challenge necessitating advanced decision-making
+across three key stages: 1) Pre-authorization (Pre-
+auth) where our platform screens transactions be-
+fore card issuers’ risk assessment, 2) Issuer check
+where card networks validate payment credentials,
+and 3) Post-authorization (Post-auth) where we
+conduct final risk evaluation after issuer approval.
+Traditional SL approaches operate isolated classi-
+fiers at each stage, failing to model the sequential
+interdependencies and business constraints (e.g.,
+
+92
+
+July 28-30, 2025 ©2025 Association for Computational Linguistics
+
+
+Evaluation
+Prompting feedbacks info
+
+Reward Function validation feedbacks
+
+•
+A new best reward function found: ```python 
+xxx```
+•
+We trained a RL policy using the reward 
+function code and tracked my focused metric 
+feedback from an out-of-time test data: xxx
+OR
+•
+A sub-optimum reward function found: xxx
+OR
+•
+My reflections on my preivious failures are: 
+xxx
+
+States: SL Model 
+scores, features, etc.
+Action: Block, Pass
+Step: T0
+
+States: SL Model scores, 
+features, etc.
+Action: Block, Pass
+Step: T1
+
+Pre-Auth
+Post-Auth
+
+Card issuer checks
+
+Figure 2: Imagine the buyer transaction risk decision
+checkpoints pipeline as a Markov Decision Process.
+
+needing to block more potential frauds during Pre-
+auth to avoid issuer penalties). This fragmentation
+leads to suboptimal precision-recall balance and
+excessive manual reviews. RL’s strength in con-
+strained sequential optimization makes it uniquely
+suited to maximize cumulative fraud prevention
+while respecting stage-specific requirements.
+
+In response, we propose a cutting-edge RL
+framework that harnesses the power of LLM to
+autonomously evolve and refine decision-making
+processes in the payment risk domain, a first in this
+field. Our contributions are summarized as follows:
+
+LLM-based Reward Function Generation for
+RL: We introduce a framework using LLMs to au-
+tonomously create reward functions that directly
+optimize precision-recall metrics in the payment
+risk domain, outperforming human-designed re-
+
+Instruction Prompts
+
+Integrate 
+
+TRISK domain Task Descriptions
+
+into the 
+
+new 
+Instruction 
+
+We are designing a reward function 
+for multi-steps risk decision…
+
+Prompts
+
+Multi-step TRISK RL code 
+
+class PolicyTrainer:
+
+def __init__(self, …):
+
+self.policy_nn = …
+self.train_dataloader = …
+self.n_episodes = …
+self.max_t = …
+self.print_every = …
+self.optimizer = …
+self.scores = …
+
+Reward Function design 
+guides and tips
+
+•
+Here are some code examples or 
+general info: ```python  def reward 
+function: return reward```
+•
+Tip 1,Tip 2 …
+
+Sampling Reward Functions from LLM
+
+Figure 1: The LLM enhanced self-improving RL framework overview. It takes in the task description/instructions,
+the RL source code, and the example human-designed reward function as the context to generate an executable
+reward function. We designed an evolutionary algorithm to allow the LLM to evolve the reward function design
+based on feedback on the performance of the RL agent.
+
+wards. It uses an evolutionary algorithm for itera-
+tive refinement based on RL agent feedback, sup-
+porting few-shot/zero-shot creation with/without
+prior examples. The general process is shown in
+Figure 1.
+
+Transaction Risk Detection as Constrained
+MDP: We redefine transaction risk detection as
+a multistep MDP with stage-specific constraints,
+solved using policy-based RL like REINFORCE.
+By integrating transaction stages into a coherent
+framework (see Figure 2) and aggregating reward
+signals across stages (detailed in Figure 3), our
+method outperforms SL’s surrogate loss functions
+through direct optimization of business objectives.
+
+Our research, supported by extensive experi-
+ments with real-world e-Commerce transaction
+data, demonstrates significant improvements in
+fraud detection performance compared to the exist-
+ing SL models on our payment system.
+
+2
+Methodology
+
+2.1
+Designing the MDP and RL Framework
+
+We model the e-commerce transaction process as
+
+a finite-horizon MDP, visualized in Figure 2. The
+system generates state signals from both legacy SL
+risk model scores and transaction stage indicators
+(Pre-auth, Post-auth). While there are also many
+transactional features that can be used as state sig-
+nals, our experiments primarily use SL scores for
+
+93

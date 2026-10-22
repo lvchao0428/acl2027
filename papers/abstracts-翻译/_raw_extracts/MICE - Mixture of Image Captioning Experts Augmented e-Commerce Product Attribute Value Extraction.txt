@@ -1,0 +1,186 @@
+Abstract
+
+Attribute value extraction plays a crucial role
+in enhancing e-commerce search, filtering, and
+recommendation systems. However, prior vi-
+sual attribute value extraction methods typically
+rely on both product images and textual infor-
+mation such as product descriptions and titles.
+In practice, text can be ambiguous, inaccurate,
+or unavailable, which can degrade model per-
+formance. We propose Mixture of Image Cap-
+tioning Experts (MICE), a novel augmentation
+framework for product attribute value extrac-
+tion. MICE leverages a curated pool of image
+captioning models to generate accurate cap-
+tions from product images, resulting in robust
+attribute extraction solely from an image. Ex-
+tensive experiments on the public ImplicitAVE
+dataset and a proprietary women’s tops dataset
+demonstrate that MICE significantly improves
+the performance of state-of-the-art large multi-
+modal models (LMMs) in both zero-shot and
+fine-tuning settings. An ablation study vali-
+dates the contribution of each component in the
+framework. MICE’s modular design offers scal-
+ability and adaptability, making it well-suited
+for diverse industrial applications with varying
+
+MICE: Mixture of Image Captioning Experts Augmented
+
+e-Commerce Product Attribute Value Extraction
+
+Jiaying Gong, Hongda Shen, Janet Jenq
+
+eBay Inc.
+{jiagong,honshen,jjenq}@ebay.com
+
+Figure 1: Examples of attribute value extraction for e-Commerce products.
+
+computational and latency requirements.
+
+1
+Introduction
+
+Visual attribute value extraction is a fundamental
+task in e-commerce that involves identifying and
+structuring key, visually discernible product de-
+tails, such as brand, size, color, material, and item
+specifications. Figure 1 shows a few examples of
+e-commerce products along with their images, ti-
+tles and attribute key-value pairs from one public
+dataset. The attribute extraction process is crit-
+ical for enhancing product visibility, improving
+search functionality, and enriching the overall con-
+sumer experience. Accurately extracted attributes
+improve search result relevance, boost product dis-
+coverability, and enable more precise product filter-
+ing, ultimately contributing to higher click-through
+rates and increased customer engagement.
+
+In addition to improving search and discovery,
+structured product information helps consumers
+make more informed purchasing decisions by en-
+abling easier comparison between similar items.
+On the back end, automated attribute extraction
+supports large-scale catalog management by mini-
+
+1151
+
+Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 6: Industry Track), pages 1151–1160
+
+July 28-30, 2025 ©2025 Association for Computational Linguistics
+
+
+mizing the need for manual data entry, which can
+be inefficient and error-prone. It also promotes
+standardization across sellers and marketplaces, re-
+sulting in more consistent, high-quality product
+data while reducing operational overhead.
+
+Existing research on attribute value extraction
+(AVE) has primarily focused on unimodal ap-
+proaches, where product attributes are derived
+solely from textual inputs such as titles or descrip-
+tions (Gong and Eldardiry, 2024; Blume et al.,
+2023a; Gong et al., 2023; Shinzato et al., 2023;
+Yang et al., 2023a). More recently, multimodal
+
+methods leverage both product images and tex-
+tual information with a joint learning framework to
+improve attribute extraction accuracy (Zou et al.,
+2024a; Liu et al., 2023b; Wang et al., 2023; Wu
+et al., 2023; De la Comble et al., 2022).
+
+The reliance on seller-generated textual informa-
+tion presents challenges for e-commerce platforms.
+1) Lack of standardization leads to inconsistencies
+in product formatting, making search and catego-
+rization difficult. 2) Incomplete attributes hinder
+filtering and recommendation systems, reducing
+product visibility. 3) Ambiguous or inaccurate de-
+scriptions contribute to misclassification and higher
+return rates, negatively impacting customer trust.
+These issues with seller-provided textual informa-
+tion negatively impact attribute value extraction
+performance (Chen et al., 2019; RetailTouchpoints,
+2016).
+Meanwhile, the rise of mobile listing apps on
+platforms like eBay, Amazon, and Alibaba has
+shifted seller behavior toward uploading images
+without structured text, streamlining the listing pro-
+cess through simplified and automated methods. In
+parallel, modern Large Language Models (LLMs)
+have demonstrated strong capabilities in generating
+high-quality titles and descriptions for e-Commerce
+listings (Zhang et al., 2024a,b; Chen et al., 2019).
+As a result, images are increasingly becoming the
+primary source of truth for attribute value extrac-
+tion in e-commerce contexts.
+
+In this work, we propose Mixture of Image Cap-
+tioning Experts (MICE), an augmentation frame-
+work for attribute value extraction that leverages
+a mixture of image captioning models. Recent
+advances in Large Multimodal Models (LMMs)
+have proven effective at generating informative cap-
+tions directly from images. Our hypothesis is that
+each independently trained LMM captures differ-
+ent visual aspects of a product, and their combined
+outputs can enrich the image signal with comple-
+
+mentary information. These captions are then used
+to augment the input for attribute value extraction.
+Extensive experiments on the publicly available
+ImplicitAVE dataset show that our approach signif-
+icantly improves performance across multiple state-
+of-the-art LMMs, outperforming models that rely
+solely on product titles. To assess the generalizabil-
+ity of this approach, we test MICE on an internal
+e-Commerce dataset, validating its effectiveness
+in real-world scenarios. Notably, our approach re-
+lies only on seller-provided images, yet achieves
+performance comparable to a proprietary closed-
+sourced LMM (i.e., GPT-4V) that ingests both im-
+ages and product titles. This result highlights the
+potential of MICE as a vision-only alternative. Fi-
+nally, ablation studies confirm the effectiveness of
+each individual component, and case studies illus-
+trate how MICE produces accurate attribute values,
+even outperforming multimodal baselines.
+
+2
+Related Work
+
+Most existing studies focus on extracting attribute
+values from product titles or descriptions by us-
+ing classification models (Gong et al., 2023; Deng
+et al., 2022b,a), QA-based models (Liu et al.,
+2023a; Shinzato et al., 2022; Wang et al., 2020),
+transformers (Chen et al., 2023), hypergraphs (Hu
+et al., 2025a; Gong and Eldardiry, 2024), and gen-
+erative LLMs (Gong et al., 2025a; Levine et al.,
+2024; Sabeh et al., 2024; Roy et al., 2024; Fang
+et al., 2024; Khandelwal et al., 2023; Shinzato et al.,
+2023; Blume et al., 2023b).
+While prior models for product attribute value
+extraction primarily rely on a single modality, they
+often fail to capture the rich visual information
+and cross-modal correlations available in product
+images. Recent research has shifted toward lever-
+aging Large Multimodal Models (LMMs), which
+jointly utilize product images and textual informa-
+tion to learn enhanced product representations for
+the AVE task. For example, product visual fea-
+tures are used to enhance product AVE by utiliz-
+ing multi-modal transformers (Wang et al., 2022;
+Khandelwal et al., 2023), optical character recog-
+nition (Lin et al., 2021), multi-modal attention
+mechanisms (Zhang et al., 2023a; De la Comble
+et al., 2022), prompt-tuning of pre-trained trans-
+formers (Yang et al., 2023b), and LMMs (Hu et al.,
+2025b; Gong et al., 2025b; Zou et al., 2024b) that
+generate product attribute values from combined
+text and image inputs. To support an image-based
+
+1152

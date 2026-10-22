@@ -1,0 +1,240 @@
+Abstract
+
+Attribute value extraction involves identifying
+the value spans of predetermined attributes in
+product texts. This area of research has tra-
+ditionally operated under a closed-world as-
+sumption, focusing on products from a static
+set of categories and their associated attributes.
+However, products in e-commerce stores are
+ever-increasing and evolving, calling for life-
+long learning. If continuously trained on the
+fast-increasing products and attributes, most ex-
+isting solutions not only struggle for parameter
+efficiency but also endure foreseeable defects
+due to data contamination, catastrophic forget-
+ting, etc. As a remedy, we propose and study a
+new task, which aims to effectively maintain a
+strong single model for many domains in a life-
+long learning fashion, without jeopardizing the
+model performance and parameter efficiency.
+We introduce factorization into the model and
+make it domain-aware by decoupling the mod-
+eling of product type and attribute, as a way
+to promote de-contamination and parameter ef-
+ficiency while scaling up. Tuning the model
+with distillation prevents forgetting historical
+knowledge and enables continuous learning
+from emerging domains. Experiments on hun-
+dreds of domains showed that our model at-
+tains the near state-of-the-art performance with
+affordable parameter size, the least historical
+knowledge forgetting, and the greatest robust-
+ness against noises, whilst adding only a few
+parameters per domain when compared with
+competitive baselines.
+
+1
+Introduction
+
+Attribute
+Value
+Extraction
+(AVE)
+(Nadeau
+and Sekine,
+2007),
+similar to
+Named En-
+tities Recognition
+(NER) (Chiticariu
+et al.,
+2010),
+aims to extract surface-form names
+(e.g. red/vanilla/plastic) of pre-defined product
+attributes (e.g.
+Color/Scent/Material) from
+product texts (e.g.
+product title/description).
+More specifically, we define each domain as the
+
+Stronger, Lighter, Better: Towards Life-Long Attribute Value Extraction
+
+for E-Commerce Products
+
+Tao Zhang1, Chenwei Zhang2, Xian Li2, Jingbo Shang3, Hoang H. Nguyen1, Philip S. Yu1
+
+1University of Illinois at Chicago, Chicago, IL, USA;
+2Amazon, Seattle, WA, USA;
+3University of California, San Diego, CA, USA
+{tzhang90,hnguy7,psyu}@uic.edu; {cwzhang,xianlee}@amazon.com; jshang@ucsd.edu
+
+combination of one product category/type (PT,
+e.g. Laundry_Detergent) and one attribute (Attr,
+e.g. Scent) – extracting scent values from laundry
+detergent products is an example of a domain.
+
+Training one model per domain (One-for-Each)
+means we need to maintain tens of thousands of
+models, which is not scalable and does not fully
+leverage the correlation between multiple domains
+jointly.
+Therefore, training a single model for
+all domains (All-in-One) attracts intensive studies
+(Zheng et al., 2018; Xu et al., 2019; Karamanolakis
+et al., 2020; Wang et al., 2020; Yan et al., 2021;
+Yang et al., 2022). These works aim to train a
+
+scalable all-in-one model that absorbs stacked data
+from all domains in a closed-world fashion. They
+achieve decent performance while assuming a fixed
+list of pre-defined domains is available. However,
+products in the real world keep evolving in an open-
+world fashion. New attributes, new values, and
+new product types necessitate effective knowledge
+transfer and life-long adaptation, without the need
+to retrain the entire model from scratch.
+
+Effective parameter sharing and parameter ef-
+ficiency serve critical roles in such knowledge
+transfer and scalable adaptation across many do-
+mains.
+Intuitively, similar PTs can share the
+same attributes and values. For example, Laun-
+dry_Detergent and Hand_Sanitizer may both have
+cedarwood as the Scent value. The approach of
+fully shared parameters does not always result in
+the desired knowledge transfer and can sometimes
+negatively impact performance, especially when
+dealing with complex and evolving data. For ex-
+ample, different PTs possess drastically different
+values on the same attribute: Size for Shoes can
+be 7/7.5/8 and Size for Shirt takes values such as
+XS/S/M/L/XL. Also, the same value can be adopted
+by different domains: Orange can be a typical Fla-
+vor value for Drink products, while the same value
+is usually mentioned in Umbrella products as a
+Color. Although existing works (Xu et al., 2019;
+
+8631
+
+Findings of the Association for Computational Linguistics: ACL 2024, pages 8631–8643
+
+August 11-16, 2024 ©2024 Association for Computational Linguistics
+
+
+Yan et al., 2021; Yang et al., 2022) started to adopt
+various techniques to add additional inputs to make
+the model better aware of the domain it is handling
+and therefore alleviate domain contamination and
+facilitate knowledge transfer, we argue that because
+model parameters are essentially accessible to all
+domains, such fine-grained, domain-specific knowl-
+edge may find it hard to be stored organically in
+the form of loosely organized model parameters,
+exactly according to how the knowledge distributes
+and evolves.
+
+For the first time, we study the open-world life-
+long AVE task that requires model capability on
+both parameter efficiency for scale-up extraction
+and life-long extraction of evolving new data. We
+developed a unified solution, DALLA - Domain-
+Aware Life-Long Adapter. To alleviate the domain
+contamination without sacrificing parameter effi-
+ciency, we propose a factorized adapter to decou-
+ple the product type and the attribute by assigning
+them with smaller sub-matrices after performing
+low-rank decomposition on model weight matrices.
+Factorization not only facilitates parameter sav-
+ings but, more importantly, decouples the PT/Attr
+aspects, allowing them to operate independently
+while maintaining the model’s awareness of the
+entire domain. Weight reconstruction only utilizes
+specific product type and attribute sub-matrices.
+This enables parameter sharing on a fine-grained
+(PT/Attr) level instead of shared across all domains,
+and strengthens domain-relevant knowledge trans-
+fers. Furthermore, we introduce a life-long distil-
+lation scheme based on the factorized adapter, to
+effectively boost underperforming or totally new
+domains while avoiding catastrophic forgetting of
+existing well-performing domains.
+
+Our main contributions are summarized as:
+• To our knowledge, DALLA is the first work to
+study the open-world life-long AVE task and the
+first time to introduce model parameter saving for
+scale-up and life-long attribute value extraction.
+• We propose the domain-aware factorized adapter
+module, along with its distillation strategy, to en-
+able an Attribute Value Extraction (AVE) model
+that is scalable on vast and expanding data. The
+proposed model is robust against catastrophic for-
+getting, domain contamination, and noisy data,
+while also achieving performance on continually
+unseen data.
+• We conduct extensive experiments to show our
+superiority in parameter efficiency and state-
+of-the-art robustness performance on the open-
+
+world AVE task compared with prevalent and
+latest baselines.
+
+2
+Domain-Aware Life-long Adapter
+
+Problem formulation: We address the attribute
+value extraction (AVE) problem by regarding it as
+a sequential tagging problem, as a popular choice.
+Based on the BIO schema , AVE assigns a sequence
+of labels Y = [y1, ..., yNtoken] to a given product
+profile sentence X = [x1, ..., xNtoken] with Ntoken
+tokens, given a product type (PT) and an attribute
+(Attr). We take the combination of a product type
+and an attribute as a domain (PT, Attr). Given
+the domain, an AVE model should mark out all the
+entities in the product profile as attribute values.
+An entity is a span of tokens e = [xi, ...xj](1 ≤
+i ≤j ≤Ntoken). Specifically, the first token of
+an entity mentioned in the sentence is labeled as
+B, the other tokens inside that entity mention are
+labeled as I, and the non-entity tokens are labeled
+as O.
+Open-World Life-Long AVE Task: Previous
+works (Wang et al., 2020; Yan et al., 2021; Yang
+et al., 2022) show remarkable performances on
+closed-world data but fail to address the concern
+of life-long learning capabilities on the open-world
+data, which keeps evolving on either attribute value
+or domain set. Similar to most previous works,
+directly retraining with open-world data leads to
+catastrophic forgetting.
+
+Unlike closed-world settings, for open-world
+life-long AVE task, we are inspired by (Ke and
+Liu, 2022) and seek to incrementally learn a model
+f with T sequential domains D = {Di}T
+
+i=1: f :
+X × D →Y , namely a sequential learning process
+(f(X, D1) →Y D1, ..., f(X, DT ) →Y DT ). Each
+
+domain is regarded as a unit dataset absorbed by f
+for training and testing.
+
+An ideal solution for the open-world, life-long
+AVE task requires: (1) Scalability: the model can
+provide cost-effective training on large-sized and
+number-increasing domains. We seek parameter
+efficiency by a domain-aware factorized adapter,
+depicted in Section 2.1. (2) Robustness: the model
+can overcome catastrophic forgetting and domain
+contamination during evolving training. We de-
+couple sub-matrices for PTs and Attr for condi-
+tional parameter sharing and allow each PT/Attr
+sub-matrix to update independently to avoid con-
+tamination and propagation, detailed in Section
+2.1. Furthermore, we distill knowledge through
+
+8632

@@ -1,0 +1,227 @@
+Abstract
+
+Aspect-Based Sentiment Analysis (ABSA) is
+critical for extracting actionable product in-
+sights from e-commerce reviews. However,
+most public ABSA benchmarks are restricted to
+short texts and a limited range of domains, and
+therefore underrepresent the challenges posed
+by real-world reviews—where multiple aspects
+co-occur, colloquial and noisy expressions are
+common, and evidence must often be aggre-
+gated across sentences in long contexts.
+
+We introduce E-ABSA20K, a multi-domain
+dataset of 20K reviews from four product cate-
+gories (WomenBags, Dresses, Cosmetics, and
+Furniture), annotated with review-level senti-
+ment quads. Compared to existing benchmarks,
+E-ABSA20K contains substantially longer and
+more aspect-dense reviews, averaging 63.9
+words and 6.0 quads per review. We further
+propose a two-stage propose-and-verify frame-
+work for review-level quad extraction (target,
+aspect, opinion, sentiment). The first stage
+generates high-recall candidates under strict
+schema constraints, while the second stage con-
+ducts explicit grounding, scope, and modality
+verification, followed by review-level consol-
+idation to mitigate hallucinations and scope
+leakage in long reviews. Experiments across
+multiple Qwen3 model sizes demonstrate that
+our approach consistently outperforms single-
+stage prompting (with and without chain-of-
+thought) as well as competitive ABSA extrac-
+tion baselines, improving quad-level micro-F1
+(µF) and robustness on discourse-hard cases
+such as comparisons and conditionals. The
+dataset was collected from a major English-
+language e-commerce platform in Southeast
+Asia; while reviews are predominantly writ-
+ten in English, a small fraction (approximately
+0.8%) contains code-mixed tokens, reflecting
+realistic multilingual user-generated content.
+
+1
+Introduction
+
+E-commerce
+platforms
+accumulate
+massive
+amounts of user reviews that describe products
+
+E-ABSA20K: A Dataset and Propose-and-Verify for Aspect-Based
+
+Sentiment Analysis in Long E-commerce Reviews
+
+Tong Sun1, Mingyang Ma1, Cheng Yu1
+
+1Alibaba International Digital Commerce Group
+
+st422019@alibaba-inc.com
+
+{mingyang.mmy, yucheng.yc}@lazada.com
+
+along many dimensions (e.g., material, craftsman-
+ship, size, odor, logistics, and after-sales service).
+Traditional sentiment analysis assigns a single
+polarity to a sentence or a whole review and
+cannot answer the more actionable question: which
+aspects are praised or criticized? Aspect-Based
+Sentiment Analysis (ABSA) addresses this by
+extracting structured aspect-level opinions and
+their polarities (Zhang et al., 2022). Despite steady
+
+Figure 1: Illustrative examples from E-ABSA20K high-
+lighting the complexities of review-level ABSA.
+
+progress on benchmark datasets, review-level
+ABSA in real e-commerce settings remains
+challenging for three reasons. (1) Long reviews
+and cross-sentence evidence.
+Real reviews
+often
+contain
+transitions,
+comparisons,
+and
+usage narratives, where the target, aspect, and
+sentiment may be scattered across sentences. (2)
+Multi-aspect, fine-grained targets.
+A single
+review can mention many aspects at different
+granularities (e.g., strap vs. hardware), which
+increases omission and mismatch errors. (3) Hal-
+lucinations and scope leakage under single-pass
+generation. When prompted to produce structured
+ABSA outputs in one pass (Ding et al., 2024;
+Simmering and Huoviala, 2023; Wu et al., 2025;
+
+17959
+
+Findings of the Association for Computational Linguistics: ACL 2026, pages 17959–17973
+
+July 2-7, 2026 ©2026 Association for Computational Linguistics
+
+
+Wang et al., 2025), LLMs frequently generate
+
+ungrounded or out-of-scope quads (e.g., extracting
+opinions about alternative products, hypothetical
+conditions, or unrelated service entities), especially
+in long, discourse-rich reviews.
+While larger
+backbones alleviate these issues, smaller and
+medium-sized models—which are often preferred
+in deployment—tend to exhibit them more severely.
+We illustrate these representative challenges in
+
+Fig. 1, contrasting the ground-truth quads with
+common errors (e.g., scope leakage and entity
+confusion) typically made by single-pass LLM
+extractors on our E-ABSA20K dataset.
+
+To study these challenges and develop more ro-
+bust extraction methods, we make three contribu-
+tions:
+
+1. We release E-ABSA20K, a multi-domain e-
+commerce ABSA dataset with 20K review-level
+quad annotations across four categories (Wom-
+enBags, Dresses, Cosmetics, Furniture), fea-
+turing long and aspect-dense reviews.
+The
+dataset is collected from an English-language
+e-commerce platform in Southeast Asia; re-
+views are predominantly written in English,
+with a small proportion (≈0.8%) containing
+code-mixed tokens (e.g., non-Latin characters).
+
+2. We propose a two-stage propose-and-verify
+framework that decouples high-recall candidate
+proposal from explicit grounding/scope/modal-
+ity verification, followed by review-level consol-
+idation enforcing a unique (t, a) key.
+
+3. We complement standard quad-level F1 with a
+discourse-hard evaluation tailored to long re-
+views, reporting performance on trigger-based
+subsets for comparisons, conditionals, uncer-
+tainty, and other-entity mentions.
+
+2
+Related Work
+
+ABSA Datasets.
+The development of Aspect-
+Based Sentiment Analysis (ABSA) datasets has
+steadily progressed towards greater complexity and
+realism. Early benchmarks, such as those from
+SemEval-2014 (Pontiki et al., 2014), primarily of-
+fered sentence-level annotations within narrow do-
+mains like restaurants and laptops. Subsequent ef-
+forts, notably SemEval-2016 Task 5 (Pontiki et al.,
+2016), expanded the scope to review-level contexts
+and multiple languages, establishing a more com-
+prehensive annotation framework.
+
+Recent datasets continue this trend by target-
+ing more complex, joint extraction of sentiment
+elements.
+For instance, OATS (Chebolu et al.,
+2024a) and ROAST (Chebolu et al., 2024b) focus
+on review-level tuples and introduce metrics for
+annotation consistency. Shoes-ACOSI (Peper et al.,
+2024) advances the task for long e-commerce texts
+by proposing quintuples that include tags for im-
+plicit opinions. In parallel, works like M-ABSA ad-
+dress the scarcity of parallel multilingual resources.
+Despite this progress, a gap remains for large-scale
+datasets that specifically capture the challenges of
+long, colloquial e-commerce reviews with high as-
+pect density and cross-sentence dependencies. Our
+E-ABSA20K dataset is designed to fill this void.
+
+LLM-based Aspect-Based Extraction.
+The ad-
+vent of Large Language Models (LLMs) (Brown
+et al., 2020; Touvron et al., 2023) has fundamen-
+tally reshaped approaches to structured information
+extraction, including ABSA. Two primary applica-
+tion paradigms have emerged.
+
+The first is single-pass generation, where an
+LLM is prompted to directly output all struc-
+tured quads from a review in one go (Ding et al.,
+2024; Simmering and Huoviala, 2023).
+While
+straightforward, this approach often struggles with
+the complexities of long, discourse-rich texts. It
+is prone to generating ungrounded information
+(hallucinations) and suffering from scope leak-
+age—erroneously extracting opinions about com-
+pared products, hypothetical scenarios, or unrelated
+service entities (Wang et al., 2025). These issues
+are particularly severe for smaller, deployment-
+friendly models, motivating the need for more ro-
+bust extraction frameworks.
+
+To mitigate these challenges, recent work ex-
+plores multi-step decomposition and verification,
+including methods such as Chain-of-Thought
+(CoT) prompting that encourage step-by-step rea-
+soning before producing the final output. Our work
+builds upon this direction but makes several key
+contributions tailored to the challenges of review-
+level ABSA. Specifically, our second stage per-
+forms explicit verification of grounding, scope,
+and modality. Furthermore, it introduces a cru-
+cial review-level consolidation step that enforces
+a unique key for each (target, aspect) pair. This
+final consolidation is critical for ensuring consis-
+tency and resolving conflicting opinions scattered
+across long reviews—a nuance often overlooked
+by general-purpose verification methods.
+
+17960

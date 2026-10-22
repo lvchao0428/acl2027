@@ -1,0 +1,240 @@
+Agent-Ops: A Multi-Agent Orchestration Framework for End-to-End SOP
+
+Automation in E-Commerce Operations
+
+Apoorva Singh*
+
+Sanjay Agrawal*
+
+Amazon, India
+apoorvaz@amazon.com
+
+Vinayak Puranik
+
+Amazon, India
+puranikv@amazon.com
+
+Abstract
+
+While Large Language Models excel at reason-
+ing and language understanding, they struggle
+with multi-step operational workflows requir-
+ing precise procedural adherence, which is fun-
+damental for industrial automation. Existing
+SOP-guided agents assume well-defined pro-
+cedures and structured APIs, failing to address
+enterprise realities like incomplete SOPs, dy-
+namic web interfaces, and unpredictable doc-
+ument formats.
+We present Agent-Ops, an
+end-to-end multi-agent framework automating
+Standard Operating Procedures in e-commerce.
+Agent-Ops contributes: (1) SOP Groomer,
+a human-AI framework transforming ambigu-
+ous documentation into automation-ready spec-
+ifications, (2) WebAgent, achieving 91.3%
+task completion and 86.5% execution consis-
+tency through demonstration-based learning,
+and (3) a Document Verification Agent per-
+forming multi-lingual validation across tax in-
+voices, certificates, and supply chain docu-
+ments with 94.2% accuracy. Deployed across
+seven SOP categories in three geographic re-
+gions, Agent-Ops achieves 85-97% end-to-end
+accuracy while reducing case resolution time
+by 83% reduction. Use across 100 Account
+Managers validates that LLM-based agents
+achieve enterprise-grade reliability when aug-
+mented with robust web automation, compre-
+hensive document understanding, and system-
+atic SOP refinement.
+
+1
+Introduction
+
+Large Language Models (LLMs) have demon-
+strated impressive genral reasoning, language un-
+derstanding, and problem solving abilities. How-
+ever, they fall short in executing complex, multi-
+step workflows requiring strict adherence to Stan-
+dard Operating Procedures (SOPs), which is crit-
+ical for real-world industrial automation (Anony-
+mous, 2025). This gap is particularly evident in
+
+* These authors contributed equally to this research.
+
+Proceedings of the 64th Annual Meeting of the Association for Computational Linguistics (Volume 6: Industry Track), pages 436–446
+
+Sayanta Adhikari*
+
+Amazon, India
+sanjagr@amazon.com
+
+Amazon, India
+sayantaa@amazon.com
+
+Shivam Tiwari
+
+Dheeraj Assudani
+
+Amazon, India
+tishivak@amazon.com
+
+Amazon, India
+dheeraa@amazon.com
+
+knowledge operations work, where recent advances
+in agentic AI (Wang et al., 2024) have opened new
+frontiers.However, translating SOPs into reliable
+automated systems remains a significant enterprise
+challenge.
+
+E-commerce marketplaces present a compelling
+case study. Account Managers (AMs) serve as the
+single point of contact for sellers, handling business
+advisory, operations (deals, pricing, inventory), and
+issue resolution. A typical AM manages multiple
+seller accounts. Among all responsibilities, product
+suppression management, where listings are tem-
+porarily removed due to policy violations, quality
+issues, or intellectual property concerns, represents
+one of the most time intensive tasks, consuming
+roughly 30 minutes per case.
+
+The complexity in product suppression resolu-
+tion illustrates the broader automation challenge.
+AMs must navigate over multiple internal sys-
+tems including seller databases, account health ta-
+bles, and government verification portals. Docu-
+ment validation requires authenticating tax invoices
+against eight criteria - date verification, quantity
+reconciliation, product name matching through
+fuzzy logic, and seller information cross-validation,
+across multiple languages (English, Hindi, Arabic,
+Portuguese, Turkish) and formats. For supply chain
+cases, complexity multiplies as AMs verify brand
+linkage, validate invoice sequences, and confirm
+distributor authenticity through comprehensive re-
+search. Each case requires interpreting nuanced
+policies varying by marketplace, product category,
+and suppression type.
+
+Traditional automation approaches, including
+rule-based systems and browser automation tools
+like Selenium (He et al., 2024; Zheng et al., 2024;
+Deng et al., 2023), fail to address three barriers:
+(1) Dynamic web interfaces that change frequently,
+breaking hard-coded selectors, (2) Multi-modal
+document processing across diverse formats, lan-
+guages, and quality levels, and (3) Ambiguous pro-
+
+436
+
+July 2-7, 2026 ©2026 Association for Computational Linguistics
+
+
+Figure 1: Agent-Ops workflow: Case Input →SOP
+Groomer →WebAgent →Document Verification,
+achieving 85-97% accuracy with 83% time reduction.
+
+cedural specifications where SOPs assume domain
+expertise and omit critical details. While recent
+work has explored SOP guided agents using deci-
+sion graphs (Ye et al., 2025) and multi-agent or-
+chestration (Shrimal et al., 2024), these assume
+well defined procedures and structured APIs, fail-
+ing to address enterprise realities.
+
+Our work presents Agent-Ops, an end-to-end
+multi-agent framework, that bridges the gap be-
+tween human authored SOPs and automated execu-
+tion in e-commerce operations. This work makes
+three key contributions:
+
+• End-to-End
+Multi-Agent
+Framework:
+Agent-Ops orchestrates specialized agents
+to automate complex operational workflows,
+addressing dynamic web interfaces, multi-
+modal document processing, and ambiguous
+procedural specifications.
+
+• Novel Technical Components: We intro-
+duce: (1) SOP Groomer, which uses human-
+AI collaborative framework to transform
+ambiguous documentation into automation-
+ready specifications (+13.2% accuracy), (2)
+WebAgent, employing demonstration-based
+
+learning (91.3% task completion, 86.5% con-
+sistency), and (3) Document Verification
+Agent, performing multi-lingual document
+validation (94.2% accuracy).
+
+• Large-Scale Production Deployment: We
+evaluate Agent-Ops on seven SOP categories
+across three regions, achieving 85-97% accu-
+racy while reducing average case resolution
+time by 83%. Used across 100 Account Man-
+agers demonstrates practical viability on real-
+
+world cases with complex decision trees and
+cross-system data retrieval.
+
+Our work validates that LLM-based agents
+can achieve enterprise-grade reliability when aug-
+mented with robust web automation, comprehen-
+sive document understanding, and systematic SOP
+refinement, offering a blueprint for automating
+knowledge operations across enterprise domains.
+
+2
+Related Work
+
+Our work intersects four active research areas:
+LLM-based autonomous agents, SOP refinement,
+web automation, and document understanding.
+
+2.1
+LLM-Based Agents for Task Automation
+
+Recent LLM advances enable autonomous agents
+for complex tasks through reasoning, planning,
+and tool use (Yao et al., 2023; Schick et al.,
+2023; Wei et al., 2022). MARCO (Shrimal et al.,
+2024) achieves 94.48% accuracy via multi-agent
+orchestration with validation guardrails, whileSOP-
+Agent (Ye et al., 2025) uses decision graphs achiev-
+ing 86.6% HumanEval and 89.5% MBPP perfor-
+mance. Agent-S (Kulkarni, 2025) proposes work-
+flows for customer care SOP automation, and SOP-
+Bench (Anonymous, 2025) establishes benchmarks
+revealing gaps in LLM capabilities for industrial
+SOPs. Multi-agent frameworks like AutoGen (Wu
+et al., 2023), MetaGPT (Hong et al., 2023), and
+CAMEL (Li et al., 2023) demonstrate collabora-
+tive architectures for task decomposition. These
+approaches assume well-defined procedures with
+structured APIs. Our work addresses enterprise
+realities: dynamic web interfaces, multi-modal doc-
+uments, and ambiguous SOPs.
+
+2.2
+SOP Refinement and Workflow
+Generation
+
+Human-authored SOPs contain implicit assump-
+tions insufficient for automation. While program-
+synthesis (Chen et al., 2021; Li et al., 2022)
+and human-in-the-loop refinement (Settles, 2009;
+Wu et al., 2022) have been explored, systematic
+
+SOP refinement frameworks remainunderexplored.
+Our SOP Groomer provides structured refinement
+through step decomposition, RAG-based clarifica-
+tion (Lewis et al., 2020), multi-modal information
+extraction, and auto-merging, which improves au-
+tomation accuracy by 13.2%.
+
+437

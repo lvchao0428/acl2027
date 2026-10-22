@@ -1,0 +1,330 @@
+TablePilot: Recommending Human-Preferred Tabular Data Analysis
+
+with Large Language Models
+
+Deyin Yi1*, Yihao Liu2*, Lang Cao3*,
+Mengyu Zhou4†, Haoyu Dong4, Shi Han4, Dongmei Zhang4
+
+Abstract
+
+Tabular data analysis is crucial in many scenar-
+ios, yet efficiently identifying relevant queries
+and results for new tables remains challeng-
+ing due to data complexity, diverse analytical
+operations, and high-quality analysis require-
+ments. To address these challenges, we aim
+to recommend query–code–result triplets tai-
+lored for new tables in tabular data analysis
+workflows. In this paper, we present TablePi-
+lot, a pioneering tabular data analysis frame-
+work leveraging large language models to au-
+tonomously generate comprehensive and supe-
+rior analytical results without relying on user
+profiles or prior interactions. Additionally, we
+propose Rec-Align, a novel method to further
+improve recommendation quality and better
+align with human preferences. Experiments
+on DART, a dataset specifically designed for
+comprehensive tabular data analysis recom-
+mendation, demonstrate the effectiveness of
+our framework. Based on GPT-4o, the tuned
+TablePilot achieves 77.0% top-5 recommenda-
+tion recall. Human evaluations further high-
+light its effectiveness in optimizing tabular data
+analysis workflows.
+
+1
+Introduction
+
+Tabular data is widely used in various data analy-
+sis scenarios (Ghasemi and Amyot, 2016; Li et al.,
+2021). However, its complexity and density (Cao,
+2025; Tian et al., 2024) can make it challenging,
+even for professional analysts, to determine the
+most appropriate analysis operations for a new ta-
+ble. Conducting tabular data analysis is often te-
+dious, and the analysis operations may include er-
+rors that lead to suboptimal outcomes. Therefore,
+automatically recommending high-quality analysis
+queries and results becomes essential in the data
+analysis workflow, particularly in zero-turn scenar-
+
+* Work during internship at Microsoft.
+† Corresponding author (mezho@microsoft.com).
+
+Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 6: Industry Track), pages 355–410
+
+1Shanghai University of Finance and Economics 2Peking University
+
+3University of Illinois Urbana-Champaign 4Microsoft
+
+Passengers
+Domestic 
+Passengers
+Month
+Year
+Airport 
+
+Total 
+Passengers
+International 
+
+Code
+
+98267
+90
+98177
+Jan
+2015
+ACY
+
+96496
+65
+96431
+Feb
+2015
+ACY
+
+……
+
+4417086
+2208031
+2209055
+Mar
+2015
+JFK
+
+……
+
+1906396
+937148
+969248
+Jun
+1977
+JFK
+
+2373334
+1201676
+1171658
+Jul
+1977
+JFK
+
+……
+
+Table Theme: Annual and Monthly 
+Passenger Traffic Statistics for 
+Major U.S. Airports
+Generating various analysis and code ...
+Correcting the analysis results...
+Evaluating, returning a ranked list...
+
+Deep 
+Analysis 
+based 
+on LLM
+
+Group by 'Airport Code', 
+calculate the average 
+domestic passengers, 
+and sort in descending 
+order
+
+Domestic 
+Passengers
+Airport 
+
+Code
+
+1388556
+JFK
+
+102394.4
+ACY
+
+…
+
+Analysis Type: 
+Basic Analysis
+
+Show Code
+
+Create a line chart to 
+analyze the trend of 
+total passengers over 
+the years for each 
+airport
+
+Analysis Type: 
+Data Visualization
+Show Code
+
+Build a statistical 
+model to forecast the 
+total passengers at JFK 
+airport for the next 12 
+months
+
+Forecasted 
+Passengers
+Date
+
+4276508
+2016 - 01
+3853416
+2016 - 02
+…
+
+Analysis Type: 
+Statistics Modeling
+
+Show Code
+
+Figure 1: Overview of TablePilot. Through deep analy-
+sis based on LLM, TablePilot generates three types of
+analysis: basic analysis, data visualization, and statisti-
+cal modeling, each presented as a <query, code, result>
+triplet.
+
+ios where no user profile or historical records are
+available.
+
+In the task of tabular data analysis recommenda-
+tion, given only a table as input, we aim to recom-
+mend query–code–result triplets to users. A query
+specifies the type and objective of the analysis task,
+while the code executes the corresponding opera-
+tion on the table, serving as an intermediate step
+in the analysis. The result presents the execution
+output, which also constitutes the analysis findings.
+
+Previous works on tabular data analysis recom-
+mendation (Zhou et al., 2020, 2021) primarily rely
+on traditional machine learning methods but often
+exhibit suboptimal performance and strong depen-
+
+355
+
+July 28-30, 2025 ©2025 Association for Computational Linguistics
+
+
+dence on specific datasets. Recently, large lan-
+guage models (LLMs) (OpenAI, 2024; Touvron
+et al., 2023) have made significant strides in natu-
+ral language processing. With their advanced data
+processing, language comprehension, and genera-
+tion capabilities, LLMs present new opportunities
+for delivering more effective tabular data analysis
+recommendations.
+
+In practical data analysis scenarios, these triplets
+are expected to be (a) accurate, (b) diverse, and
+(c) human-preferred. Human-preferred refers to
+the data analysis operations that humans genuinely
+intend to perform, meaning the results should be
+meaningful, insightful and so on.
+Employing
+LLMs to recommend tabular data analyses while
+meeting these requirements presents several key
+challenges.
+
+Challenges: (a) Tabular data is often large and
+data-intensive, making it difficult for LLMs to pro-
+cess effectively. Long-context windows can trigger
+hallucinations (Huang et al., 2024), leading to in-
+accurate results. (b) Existing approaches primar-
+ily construct workflows around single-operation
+scenarios, executing predefined analytical queries
+to obtain results (Fang et al., 2024; Zhang et al.,
+2025), but they lack diversity and fail to deliver
+comprehensive analyses. (c) Selecting and present-
+ing analysis results in a way that aligns with human
+cognitive patterns is crucial (Song et al., 2024; Dai
+et al., 2023; Yu et al., 2024). A well-designed sys-
+tem should balance diversity and quality in recom-
+mending data analysis operations that match users’
+analytical preferences, ensuring the insights gener-
+ated are interpretable, actionable, and meaningful.
+
+Solution: To address these challenges, we pro-
+pose TablePilot, a framework designed to tackle
+the zero-turn recommendation task for tabular data
+analysis, as illustrated in Figure 1.
+
+To enhance the accuracy of analysis results, we
+adopt sampling techniques (Sui et al., 2024; Ye
+et al., 2023b; Ji et al., 2024), employing a table
+sampler to refine model inputs and introducing a ta-
+ble explanation component that incorporates world
+knowledge learned during the pretraining phase of
+LLMs. This stage of analysis preparation facili-
+tates the generation of more contextually appropri-
+ate queries and results. At the optimization level,
+we utilize post-refinement techniques (Chen, 2022;
+He et al., 2024) to adjust outputs. However, instead
+of focusing solely on code refinement, we identify
+multiple aspects of query and result optimization.
+
+To improve the diversity of our analysis, we im-
+
+plement a modularized approach to support various
+workflow operations. This modular design provides
+two key benefits. First, it ensures comprehensive
+coverage by enabling the workflow to handle a di-
+verse range of data analysis tasks, making it more
+adaptable to various requirements. Second, it en-
+hances performance by allowing each module to be
+trained independently for better efficiency, with im-
+provements across modules contributing to overall
+effectiveness.
+
+To ensure our analysis aligns with human pref-
+erences, we introduce Rec-Align, a method specif-
+ically designed to further enhance the quality of
+analysis by directly incorporating human prefer-
+ences. We train a ranking model to optimize the
+final set of recommended operations, ensuring they
+align with human analytical tendencies and pro-
+duce superior results.
+
+We contribute a dataset DART to support and
+validate our framework.
+Experimental results
+demonstrate that the tuned TablePilot achieves
+nearly 100% execution rates, while the analysis
+modules show an overall recall improvement of
+11.25% with GPT-4o in the dataset. Rec-Align fur-
+ther enhances alignment with human preferences,
+leading to gains of 6.8% in Recall@3 and 6.0% in
+Recall@5. Additionally, human evaluations con-
+firm that the TablePilot framework provides more
+practical and insightful data analysis recommen-
+dations compared to baseline models. Extensive
+experiments validate the effectiveness of TablePilot
+and our training approach.
+
+In summary, our main technical contributions
+are as follows:
+• We propose TablePilot, a framework for zero-
+turn recommendation in tabular data analysis,
+encompassing a comprehensive set of analytical
+operations. We also contribute DART, a dataset
+to support and validate our framework.
+
+• We introduce two additional steps to enhance the
+accuracy of analysis results, applied before and
+after core analysis. These steps incorporate sam-
+pling, explanation, and multi-faceted refinement.
+
+• We develop Rec-Align, a method designed to
+align recommendations with human analytical
+preferences, further enhancing the quality and
+practical utility of the recommended results.
+
+2
+Related Work
+
+Current tabular data analysis recommendation
+tasks can be categarized into three main types:
+
+356
