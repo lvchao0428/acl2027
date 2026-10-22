@@ -1,0 +1,10 @@
+# AutoPKG: An Automated Framework for Dynamic E-commerce Product-Attribute Knowledge Graph Construction
+> 来源文件：AutoPKG - An Automated Framework for Dynamic E-commerce Product-Attribute Knowledge Graph Construction.pdf
+
+## 英文原文摘要（Original Abstract）
+
+Product attribute extraction in e-commerce is bottlenecked by ontologies that are inconsistent, incomplete, and costly to maintain. We present AutoPKG, a multi-agent Large Language Model (LLM) framework that automatically constructs a Product-attribute Knowledge Graph (PKG) from multimodal product content. AutoPKG induces product types and type-specific attribute keys on demand, extracts attribute values from text and images, and consolidates updates through a centralized decision agent that maintains a globally consistent canonical graph. We also propose an evaluation protocol for dynamic PKGs that measures type/key validity and consolidation quality, as well as edge-level accuracy for value assertions after canonicalization. On a large real-world marketplace catalog dataset from Lazada (Alibaba), AutoPKG achieves up to 0.953 Weighted Knowledge Efficiency (WKE) for product types, 0.724 WKE for attribute keys, and 0.531 edge-level F1 for multimodal value extraction. Across three public benchmarks, we improve edge-level exact-match F1 by 0.152 and yield a 0.208 precision gain on the attribute extraction application. Online A/B tests show that AutoPKG-derived attributes increase Gross Merchandise Value (GMV) in Badge (+3.81%), Search (+5.32%), and Recommendation (+7.89%), supporting AutoPKG's practical value in production.
+
+## 中文翻译（Chinese Translation）
+
+电商中的产品属性抽取长期受困于不一致、不完整且维护成本高昂的本体（ontology）。我们提出 AutoPKG，一个由多智能体大语言模型（LLM）组成的框架，可从多模态商品内容中自动构建产品-属性知识图谱（PKG）。AutoPKG 能够按需归纳产品类型与类型相关的属性键（attribute key），从文本和图片中抽取属性值，并通过一个中心化决策智能体整合更新，维护全局一致的规范化图谱。我们还提出了一套面向动态 PKG 的评估协议，用于度量类型/键的有效性、整合质量，以及规范化之后取值断言的边级准确率。在 Lazada（阿里巴巴）的大规模真实商城目录数据集上，AutoPKG 在产品类型上取得最高 0.953 的加权知识效率（WKE），属性键上 0.724，多模态取值抽取的边级 F1 达 0.531。在三个公开基准上，边级精确匹配 F1 提升 0.152，属性抽取应用的精确率提升 0.208。在线 A/B 实验表明，AutoPKG 产出的属性在商品标签（Badge）、搜索和推荐场景下分别提升 GMV +3.81%、+5.32% 和 +7.89%，验证了其在生产环境中的实用价值。

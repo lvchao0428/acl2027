@@ -1,0 +1,227 @@
+Abstract
+
+Vision-language models show promise for e-
+commerce automation but struggle with noisy
+real-world images and multi-task requirements.
+We introduce MTIVE, a curriculum learning
+framework that progressively adapts base mod-
+els through three stages: continued pre-training
+on large-scale e-commerce datasets with con-
+trastive learning and diverse dialogue templates,
+instruction tuning on synthetic data, and mod-
+ular task-specific expert training. Our archi-
+tecture uses frozen base weights with stacked
+LoRA adapters—shared modules for domain
+knowledge and lightweight task-specific ex-
+perts—enabling continual learning without
+catastrophic forgetting. MTIVE outperforms
+open-source and proprietary baselines in both
+standard and continual learning settings.
+
+1
+Introduction
+
+The rapid growth of e-commerce has created a com-
+plex ecosystem where millions of transactions gen-
+erate vast amounts of visual and textual data across
+packaging, shipping, delivery, and post-delivery
+stages. Maintaining customer trust and operational
+integrity requires verifying image-based evidence
+collected throughout the product lifecycle—from
+quality control at fulfillment centers to customer
+claims for refunds, returns, and concessions. Cur-
+rently, manual verification processes cannot scale
+effectively, with only 47% of collected images ex-
+amined by auditors. This creates significant gaps
+that bad actors can exploit while also limiting the
+platform’s ability to efficiently serve legitimate cus-
+tomer needs. As operations scale and visual evi-
+dence accumulates, the lack of automated image
+verification at scale risks both revenue protection
+and customer-centric policies. Bridging this gap de-
+mands robust automated solutions that can analyze
+visual and textual data together to address critical
+use cases such as verifying product authenticity,
+
+MTIVE: Multi-Task Image Verification Engine Using Vision-Language
+
+Models for E-commerce
+
+Yu-Tong Cao1
+Vishnu Prabhakaran2
+Arunita Das2
+Purav Aggarwal2
+Anoop Saladi2
+
+1Amazon, Australia
+2Amazon, India
+{ytcao, visprab, arunita, aggap, saladias}@amazon.com
+
+assessing damages, monitoring quality control, and
+resolving claims across the entire supply chain.
+
+In the e-commerce domain, Vision-Language
+Models (VLMs) have been increasingly lever-
+aged for various applications through adaptation
+of general-purpose models with domain-specific
+datasets (Fu et al., 2022; Khandelwal et al., 2023;
+Jia et al., 2023; Trabelsi et al., 2025; Yada et al.,
+2025). However, there are two major limitations in
+such works. Firstly, beyond simple domain adapta-
+tion on a single task, these platforms require multi-
+task learning capabilities to simultaneously han-
+dle diverse verification scenarios, from damage
+detection and product matching to attribute extrac-
+tion and packaging verification, each demanding
+different types of visual reasoning and accuracy
+requirements. Secondly, these models remain con-
+strained by their training data distribution, exhibit-
+ing limited zero-shot performance on novel tasks.
+Real-world deployed systems frequently need to
+expand capabilities across different marketplaces,
+support new modalities, or upgrade functionalities.
+The conventional approach of retraining the en-
+tire model on expanded datasets introduces several
+critical challenges: performance regression on pre-
+viously mastered tasks, task interference, varying
+data quality, difficulty achieving Pareto-optimal so-
+lutions, deployment disruptions, and inability to
+add, update, or deprecate capabilities without ser-
+vice interruption.
+
+To address these challenges, we present MTIVE
+(Multi-Task Image Verification Engine), which
+proposes a curriculum based learning method for
+adapting general-purpose VLMs to e-commerce
+multi-task learning, along with a dynamic multi-
+LoRA (Hu et al., 2021) serving framework for effi-
+cient model composition and continual task addi-
+tion. Our key contributions are:
+• We introduce a three-stage curriculum learning
+approach: (i) task-agnostic pre-training on e-
+commerce data to learn domain-specific visual
+
+2148
+
+Proceedings of the 64th Annual Meeting of the Association for Computational Linguistics (Volume 6: Industry Track), pages 2148–2159
+
+July 2-7, 2026 ©2026 Association for Computational Linguistics
+
+
+patterns, (ii) instruction fine-tuning for instruction-
+following capabilities, and (iii) task-specific ex-
+pert training. Our modular architecture employs
+frozen base weights with progressively stacked
+LoRA adapters—shared adapters for common e-
+commerce knowledge and task-specific experts
+for specialized capabilities—enabling efficient
+multi-task learning without catastrophic forget-
+ting.
+• We develop a dynamic multi-LoRA serving sys-
+tem on vLLM (Kwon et al., 2023a) supporting effi-
+cient batched inference and runtime hot-swapping
+of expert adapters, enabling seamless addition,
+update, or removal of verification tasks without
+service disruption.
+• We conduct extensive experiments on real-world
+e-commerce verification tasks, demonstrating
+MTIVE’s superior performance against baselines.
+Through ablation studies, we validate each archi-
+tectural component and confirm our design moti-
+vations for multi-task and continual learning.
+
+2
+Related Work
+
+VLMs for E-Commerce.
+Open-source pre-
+trained VLMs such as IDEFICS (Laurençon et al.,
+2024), LLaVA (Liu et al., 2024), Qwen (Bai et al.,
+2025) and Gemma (Kamath et al., 2025) demon-
+strate strong multi-modal capabilities but lack
+domain-specific understanding for e-commerce
+applications.
+Prior works address this through
+domain-specific fine-tuning (Fu et al., 2022; Khan-
+delwal et al., 2023; Jia et al., 2023; Trabelsi
+et al., 2025; Yada et al., 2025), typically focus-
+ing on single tasks with high-quality catalog im-
+ages for attribute extraction and catalog improve-
+ment. VIT-Pro (Prabhakaran et al., 2025) recently
+extended this to customer feedback images with
+cost-efficient data generation.
+However, these
+approaches employ single-stage training on task-
+specific datasets without curriculum strategies, lim-
+iting their ability to handle the diverse image verifi-
+cation tasks required across the e-commerce supply
+chain or maintain robust multi-task performance
+when adapting to new capabilities.
+
+Multi-Task
+Learning.
+Multi-Task
+Learning
+(MTL) aims to jointly optimize all tasks using a
+single trained model. In MTL for LLMs, key chal-
+lenges include task interference, catastrophic for-
+getting, training instability on mixed datasets, and
+high retraining costs. LoRA-based MTL methods
+offer parameter efficiency but encounter instability
+
+on large mixed datasets, as LoRA projects sparse
+high-dimensional features from different tasks into
+the same dense low-dimensional space, causing
+task interference. To address this, existing MoE-
+based PEFT methods (Wang et al., 2023; Zadouri
+et al., 2023; Agiza et al., 2024; Yang et al., 2025)
+train multiple experts jointly on mixed datasets
+with routing mechanisms to dynamically allocate
+expert contributions per task. However, single-
+stage joint training still causes performance degra-
+dation from data interference and requires full re-
+training for new tasks. In contrast, MTIVE adopts a
+three-stage curriculum paradigm (task-agnostic pre-
+training, instruction tuning, and task-specific expert
+training) using stacked LoRA adapters where ex-
+perts are trained separately rather than jointly for ro-
+bust multi-task learning. This staged approach miti-
+gates performance degradation from mixed datasets
+while balancing general and domain-specific capa-
+bilities, enabling plug-and-play task addition via
+hot-swappable experts for seamless production up-
+dates without retraining or catastrophic forgetting.
+
+3
+MTIVE
+
+In this section, we present a comprehensive frame-
+work for adapting general-purpose VLMs to multi-
+task e-commerce scenarios, comprising two main
+components: a three-stage curriculum learning
+method and a dynamic multi-LoRA serving ar-
+chitecture. Our curriculum learning approach, il-
+lustrated in Figure 1, consists of three sequen-
+tial stages. First, we perform task-agnostic pre-
+training on raw image-text pairs from large-scale
+e-commerce datasets to achieve e-commerce con-
+cept alignment.
+Second, we continue training
+the model on synthetically generated instruction-
+following data to develop instruction-following ca-
+pabilities. Third, we train multiple task-specific ex-
+perts on high-quality human-annotated data to im-
+prove performance and enable flexible addition of
+new tasks. Throughout all training stages, the base
+VLM weights (W 0) remain frozen, and we employ
+LoRA-based fine-tuning. We denote W PT as the
+LoRA weights from the pre-training stage, W IT as
+the LoRA weights from the instruction fine-tuning
+stage, and W E1, W E2, ..., W ET as the weight ma-
+trices of LoRA experts for T tasks. For production
+deployment, we introduce a multi-LoRA serving
+architecture that efficiently handles heterogeneous
+task batches while supporting hot-swapping of ex-
+perts without service disruption.
+
+2149

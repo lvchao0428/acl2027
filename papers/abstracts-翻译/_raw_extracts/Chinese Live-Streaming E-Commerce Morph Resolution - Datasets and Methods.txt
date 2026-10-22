@@ -1,0 +1,218 @@
+Abstract
+
+Live-stream E-commerce faces significant chal-
+lenges from morphs, deliberate linguistic vari-
+ants used to evade real-time voice filters and
+amplify product claims illegally. While criti-
+cal for regulatory enforcement, Live Auditory
+Morph Resolution (LiveAMR) research is hin-
+dered by limited datasets: prior work relied on
+narrow, redundant health domain corpora, re-
+stricting model robustness. To bridge this gap,
+we introduce two datasets: (1) HealthAMR, a
+refined health-domain corpus via deduplication
+and re-annotation. (2) GeneralAMR, a general
+domain benchmark with 28K annotated sen-
+tences from 77 channels across 7 E-commerce
+categories.
+Further, we propose JointMRE,
+a multi-task framework that jointly resolves
+morphs and generates structured explanations,
+transferring grammatical insights from large
+language models to enhance generalization.
+Predictions are refined by our Conflict-aware
+Dual-output Refinement Framework (CDRF),
+which detects inconsistencies between correc-
+tions and explanations.
+Experiments show
+CDRF significantly improves morph resolution
+accuracy and interpretability. Our datasets and
+code are available 1.
+
+1
+Introduction
+
+Morphs are deliberate linguistic variants that substi-
+tute standard words with acoustically, visually, or
+semantically related alternatives, allowing speakers
+to obscure or disguise sensitive information. Main
+research on text morphing focused on written do-
+mains such as social media or underground forums,
+where variants like weather →waether or splitting
+strategies (e.g., 胡(hú) →古月(gˇu yuè)) were used
+to evade keyword-based filters (Hsiung et al., 2005;
+Pantel, 2006; Zhang et al., 2014). These studies
+demonstrated that morphs can effectively bypass
+
+*Corresponding author
+1https://github.com/loopback00/
+Morph-Resolution-Datasets-and-Methods
+
+Chinese Live-Streaming E-Commerce Morph Resolution: Datasets and
+
+Methods
+
+Jipeng Qiang, Jiahao Zhu, Yi Zhu*, Chaowei Zhang
+School Information and Artificial intelligence, Yangzhou University, China
+jpqiang@yzu.edu.cn, mz120231031@stu.yzu.edu.cn, {zhuyi, cwzhang}@yzu.edu.cn
+
+Figure 1: The corresponding morph example cases in
+different domains. Morphs are marked with an under-
+line, with their corresponding original words provided
+in parentheses.
+
+content moderation and facilitate covert communi-
+cation, but largely ignored spoken contexts and the
+unique challenges they present.
+
+With the explosive growth of live-stream
+E-commerce, where hosts may sell over ten bil-
+lion items annually in China alone, morphing has
+migrated into the auditory domain. In this setting,
+speakers employ phonetic or filler-word tweaks
+(e.g., “手术” (shˇou shù, “surgery”) becomes “手某
+术” (shˇou mˇou shù)) to slip past real-time voice fil-
+ters and make exaggerated product claims without
+detection (Zhu et al., 2025; Center, 2022). Such
+practices not only deceive consumers but also un-
+dermine regulatory enforcement, making accurate
+Live Auditory Morph Resolution (LiveAMR) criti-
+cal for safeguarding E-commerce integrity.
+
+Despite its importance, this area of research
+for LiveAMR has not received sufficient attention.
+We only found a single-domain dataset limited to
+
+health-related streams (Zhu et al., 2025). Through
+our analysis, we found that it contains 7,812 clips
+from only 25 channels, suffers from high redun-
+dancy, and exhibits a skewed variant distribution,
+with 47 base terms accounting for half of all morph
+forms. This narrow scope hampers model robust-
+
+1
+2632
+
+Findings of the Association for Computational Linguistics: ACL 2026, pages 2632–2645
+
+July 2-7, 2026 ©2026 Association for Computational Linguistics
+
+
+ness and fails to reflect the breadth of morph usage
+across diverse product categories and platform con-
+ventions. As shown in Figure 1, many livestreams
+across different domains use morphs. Some of
+these morphs are shared across domains, while oth-
+ers are specific to individual fields.
+
+To fill this gap, we introduce two complemen-
+tary contributions. First, we refine and extend the
+data foundation from this work (Zhu et al., 2025).
+We apply automated deduplication and two-stage
+
+re-annotation to cleanse the original corpus, yield-
+ing HealthAMR. We then expand to a new multi-
+domain benchmark, GeneralAMR, by collecting
+2,752 one-minute clips from 77 channels across
+three major Chinese platforms (Douyin, Kuaishou,
+Jingdong) and seven E-commerce domains (gro-
+ceries, cosmetics, baby products, supplements, in-
+struments, beverages, apparel). The combined cor-
+pus comprises over 28,000 sentences (3,092 posi-
+tive morph instances, 24,949 negatives), covering
+567 base words and 1,309 distinct variants. This
+realistic, high-quality dataset enables rigorous eval-
+uation of generalization induced morph diversity.
+
+Second, we develop novel methods to tackle
+the heightened generalization challenge. Standard
+fine-tuning on diverse data often learns superficial
+correlations rather than the underlying transforma-
+tion logic (McCoy et al., 2019; Pruksachatkun et al.,
+2020; Wang et al., 2024). Drawing inspiration from
+human experts who provide both corrections and
+their rationales, we propose JointMRE, a multi-task
+framework that jointly normalizes morphs and gen-
+erates structured explanations including (morph,
+morph type, original word) triplets. By explicitly
+teaching models to “explain” their morph normal-
+ization decisions, we transfer rich domain and lexi-
+cal insights from large language models to fine-tune
+language models, enhancing both resolution accu-
+racy and interpretability in Chinese live-streaming
+E-commerce.
+
+Building on this, our Conflict-aware Dual-
+output Refinement Framework (CDRF) serves as
+a lightweight second stage: it uses the explana-
+tions produced by JointMRE to identify, arbitrate,
+and apply targeted edits, ensuring consistency be-
+tween predictions and rationales without full sen-
+tence regeneration.
+This three-step process in-
+cludes conflict identification, arbitration, and cor-
+rection, which is executed in a single LLM call
+to maintain operational efficiency. Comprehensive
+experiments demonstrate that our methods achieve
+state-of-the-art results on both datasets. JointMRE
+
+improves sentence-level F0.5 by 1.93–3.12 points
+over baselines, while CDRF further boosts gains
+by 2.8–5.8 points via conflict arbitration.
+
+2
+Related Work
+
+Morphing, the intentional modification of text for
+concealment or evasion, has been observed in many
+languages, though most research has focused on
+English.
+Early English studies examined both
+character-level variants (e.g., weather-> waether)
+and word-level splits (e.g., weather-> wea ther),
+leveraging resources such as Aspell dictionaries,
+FastText embeddings (Joulin et al., 2017), and
+handcrafted orthographic features (van der Goot,
+2019). More recent approaches exploit pre-trained
+language models (PLMs), casting morph resolu-
+tion as either sequence to tagging (Muller et al.,
+2019) or sequence to sequence generation (Lourent-
+zou et al., 2019; Samuel and Straka, 2021). How-
+ever, these studies focus predominantly on alpha-
+betic scripts and on variants arising in written
+social-media or forum contexts (Eisenstein, 2013;
+Baldwin et al., 2015).
+
+By contrast, Chinese presents unique challenges:
+its logographic characters lack clear subword
+boundaries, and morph variants often involve ho-
+mophonic or semantic substitutions that cannot
+be captured by methods designed for alphabetic
+languages. Main Chinese work has concentrated
+on social media normalization, e.g., Weibo data
+(Huang et al., 2013; You et al., 2018), and on
+industry-specific argot in underground markets (Xu
+et al., 2021; Wang et al., 2024). To tackle this,
+early work by (Huang et al., 2013) proposed a
+similarity-based approach, incorporating surface-
+level, meta path based semantic, and social rele-
+vance features. Subsequently, (You et al., 2018)
+introduced a method that leverages autoencoders
+to generate embeddings for morphs and their can-
+didates, enriched by effective contextual informa-
+tion. More recently, (Wang et al., 2024) framed
+the problem as an alignment task, utilizing transla-
+tion models to map morphs directly to their target
+forms.
+
+Live-streaming scenarios introduce further com-
+plexity:
+rapid speech, background noise, and
+domain-specific jargon result in highly diverse
+morph phenomena that are not addressed by exist-
+ing corpora or models. (Zhu et al., 2025)introduced
+the first health domain AMR dataset, created from
+ASR transcripts of live-streams, and proposed a
+
+2
+2633

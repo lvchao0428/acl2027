@@ -1,0 +1,263 @@
+Chengjie Guo1 Bingcheng Liu1 Jie Wu2 Renxiang Li1 Philip S. Yu6
+
+Abstract
+
+Contract review is a critical process to protect
+the rights and interests of the parties involved.
+However, this process is time-consuming, labor-
+intensive, and costly, especially when a contract
+faces multiple rounds of review. To acceler-
+ate the contract review and promote the com-
+pletion of transactions, this paper introduces
+a novel benchmark of legal provision recom-
+mendation and conflict detection for contract
+auto-reviewing (PROVBENCH), which aims to
+recommend the legal provisions related to con-
+tract clauses and detect possible legal conflicts.
+Specifically, we construct the first Legal Pro-
+vision Recommendation Dataset: PROVDATA,
+which covers 8 common contract types. In ad-
+dition, we conduct extensive experiments to
+evaluate PROVBENCH on various state-of-the-
+art models. Experimental results validate the
+feasibility of PROVBENCH and demonstrate the
+effectiveness of PROVDATA. Finally, we iden-
+tify potential challenges in the PROVBENCH
+and advocate for further investigation1.
+
+1
+Introduction
+
+Contract review (Hermalin et al., 2007) is an es-
+sential step in completing a transaction, where
+parties carefully assess each contract clause to
+ensure compliance, fairness, and effective risk
+management (Wang and Chen, 2022; Schuhmann
+and Eichhorn, 2015). However, contract review
+is typically labor-intensive, time-consuming, and
+costly (Zheng et al., 2020). For enterprises that
+manage numerous contracts with multiple review
+rounds, it is necessary to hire legal professionals
+and commit significant time, leading to a substan-
+tial increase in financial pressure (Hu et al., 2018).
+
+To alleviate this issue, various methods (Leiva-
+diti et al., 2020; Wang et al., 2023) have been
+developed to improve efficiency in contract re-
+view through tasks such as classifying the contract
+
+*Corresponding authors.
+1https://github.com/labpaper/ProvBench
+
+PROVBENCH: A Benchmark of Legal Provision Recommendation for
+
+Contract Auto-Reviewing
+
+Xiuxuan Shen1 Zhongyuan Jiang1,5* Junsan Zhang2 Junxiao Han3* Yao Wan4
+
+1 Xidian University, 2 China University of Petroleum (East China),
+3 School of Computer and Computing Science, Hangzhou City University,
+4 Huazhong University of Science and Technology, 5 Purple Mountain Laboratories
+6 University of Illinois Chicago
+shenxiuxuan@stu.xidian.edu.cn, zyjiang@xidian.edu.cn, hanjx@hzcu.edu.cn
+
+Contract Clause
+
+The seller has no obligation to inform the buyer in case the 
+subject matter is damaged or lost during transportation. All 
+losses shall be borne by the buyer on its own.
+
+Auto-Reviewing Process
+
+Analysis contract clause Recommending legal provision
+Conflict detection
+
+Result of Recommend and Detect
+
+1. "Interpretation of the Supreme People's Court on Issues 
+Concerning the Application of Law in the Trial of Disputes 
+over Sales Contracts, 13th": Where the seller sells the subject 
+matter in transit which is delivered to the carrier for …
+
+Contradiction with the constraints of this law high-risk
+
+2. "Civil Code,  605th": Where the subject matter fails to be 
+delivered within the time limit as agreed upon due to …
+
+Contradiction with the constraints of this law
+
+high-risk
+
+3. "Interpretation of the Supreme People's Court on Issues 
+Concerning the Application of Law in the Trial of Disputes 
+over Sales Contracts, 14 t h " : Where the parties have no 
+agreement on the burden of risk, the subject matter is …
+
+Comply with the constraints of this law
+
+Figure 1: An illustration of contract review: recom-
+mending relevant legal provisions as clues and detecting
+potential conflicts.
+
+clause (Lippi et al., 2019) or assessing their impor-
+tance levels (Hendrycks et al., 2021). These meth-
+ods primarily focus on analyzing contracts while
+ignoring their association with relevant legal pro-
+visions, which limits their ability to provide clear
+evidence or specific recommendations to ensure
+legal compliance.
+
+In this paper, we aim to bridge this gap by
+proposing a framework that not only provides ex-
+plicit legal provisions as evidence but also evalu-
+ates potential legal contradictions. As shown in
+Figure 1, the process begins with the input of a
+contract clause for review. Then, it is analyzed to
+recommend relevant legal provisions, followed by
+detecting whether logical contradictions exist be-
+tween the clause and the recommended provisions.
+
+6240
+
+Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers), pages 6240–6254
+
+July 27 - August 1, 2025 ©2025 Association for Computational Linguistics
+
+
+The results of recommendation and contradiction
+detection are returned to the lawyer for assistance
+in contract review.
+
+Given the difficulty of understanding contract
+clauses and accurately completing the above pro-
+cess, this paper introduces a novel task for legal pro-
+vision recommendation in the context of contract
+auto-reviewing: PROVREC, aimed at mitigating the
+limitations of existing methods.
+
+To begin formulating and benchmarking the
+PROVREC task, a primary challenge lies in the
+absence of a dataset that associates contract clauses
+with relevant legal provisions through logical re-
+lationships. Inspired by the MSCOCO (Lin et al.,
+2014) dataset, which provides a set of textual de-
+scriptions for each image (Lee et al., 2018; Wu
+et al., 2021), we align each contract clause with
+relevant legal provisions and specified logical re-
+lationships, to construct the first Legal Provision
+Recommendation Dataset (PROVDATA).
+
+In the PROVDATA, we manually assign each
+contract clause with a set of relevant legal provi-
+sions. Similar to the textual entailment task (Parikh
+et al., 2016; Pàmies et al., 2023), we consider each
+contract clause and its corresponding legal provi-
+sions as text pairs, labeling them as “entailment”
+if the provision supports the clause or “contradic-
+tion” if it conflicts. This manual annotation process
+spanned over 4 months, resulting in 3,550 contract
+clauses and more than 24,850 annotations. This
+provides a high-quality dataset that establishes a
+critical benchmark for advancing research in con-
+tract auto-reviewing.
+
+Furthermore, we establish PROVBENCH as a
+benchmark for the PROVREC task, which includes
+three parts: (1) Legal Text Learner, (2) Legal Provi-
+sion Recommender, and (3) Conflict Detector. The
+legal provision recommender recommends relevant
+provisions for contract clauses, while the conflict
+detector evaluates the logical relationships to iden-
+tify potential conflicts. Besides, to benchmark the
+PROVBENCH under different learning paradigms,
+we explore two types of strategies: (1) supervised
+learning methods, where models are trained on
+PROVDATA dataset, and (2) zero-shot methods, in-
+cluding retrieval-based and prompting-based ap-
+proaches that require no additional training.
+
+To conclude, the main contributions of this paper
+can be summarized as follows:
+• We propose a novel benchmark PROVBENCH
+for legal provision recommendation and conflict
+detection, assisting contract review by providing
+
+clear legal support or refuting evidence.
+• We construct the PROVDATA dataset, consisting
+of 3,550 contract clauses and over 24,850 an-
+notations, providing a solid data foundation for
+benchmarking.
+• We benchmark several models for PROVBENCH
+and conduct extensive experiments to evaluate
+their performance.
+We believe this benchmark provides a valuable tool
+
+for contract auto-reviewing. It offers clearer legal
+references, which enhance efficiency and accuracy
+in the review process.
+
+2
+Problem Formulation
+
+Given a set C = {C1, C2, . . . , CN} consisting of
+N contract clauses, the goal of PROVBENCH is
+to assist in recommending clause Ci with relevant
+legal provisions from candidate legal provisions
+L = {L1, L2, . . . , LM} and detecting potential
+conflicts. This involves two key steps:
+
+Legal Provision Recommendation.
+Empirically,
+this step recommends the top 3 most relevant legal
+provisions from L based on semantic similarity to
+the input contract clause.
+
+▶Input: A contract clause Ci and candidate legal provi-
+sions L.
+▶Process:
+Recommend 3 legal provisions Li
+=
+{Li
+
+1, Li
+2, Li
+3} by measuring semantic similarity between
+Ci and each Lj from L.
+▶Output: A ranked set of 3 recommend legal provisions
+Li = {Li
+
+1, Li
+2, Li
+3} that are relevant to Ci.
+
+Conflict Detection.
+Once the relevant legal provi-
+sions are recommended, the next step is to evaluate
+the logical relationship between the contract clause
+Ci and recommended legal provision Li by check-
+ing for potential conflicts. The output consists of
+recommended legal provisions and corresponding
+logical labels labeli
+
+j, indicating whether the con-
+tract clause entails or contradicts each provision.
+The process can be formulated as:
+
+▶Input: A contract clause Ci and a set of recommended
+legal provisions Li.
+▶Process: For each Li
+
+j, determine the logical relation-
+ship between Ci and Li
+
+j by checking if Ci conforms to
+or contradicts Li
+
+j.
+▶Output: A set of binary labels labeli
+
+j ∈{0, 1}, where
+0 indicates entailment (no conflict), and 1 indicates con-
+tradiction.
+
+6241

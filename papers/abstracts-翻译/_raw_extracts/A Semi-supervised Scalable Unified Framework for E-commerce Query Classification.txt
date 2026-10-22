@@ -1,0 +1,242 @@
+A Semi-supervised Scalable Unified Framework for E-commerce Query
+
+Xue Jiang1, Changping Peng1, Zhangang Lin1, Ching Law1
+
+Abstract
+
+Query classification, including multiple sub-
+tasks such as intent and category prediction, is
+vital to e-commerce applications. E-commerce
+queries are usually short and lack context, and
+the information between labels cannot be used,
+resulting in insufficient prior information for
+modeling. Most existing industrial query clas-
+sification methods rely on users’ posterior click
+behavior to construct training samples, result-
+ing in a Matthew vicious cycle. Furthermore,
+the subtasks of query classification lack a uni-
+fied framework, leading to low efficiency for
+algorithm optimization.
+
+In this paper, we propose a novel Semi-
+supervised
+Scalable
+Unified
+Framework
+(SSUF), containing multiple enhanced mod-
+ules to unify the query classification tasks.
+The knowledge-enhanced module uses world
+knowledge to enhance query representations
+and solve the problem of insufficient query
+information. The label-enhanced module uses
+label semantics and semi-supervised signals to
+reduce the dependence on posterior labels. The
+structure-enhanced module enhances the label
+representation based on the complex label
+relations. Each module is highly pluggable,
+and input features can be added or removed as
+needed according to each subtask. We conduct
+extensive offline and online A/B experiments,
+and the results show that SSUF significantly
+outperforms the state-of-the-art models.
+
+1
+Introduction
+
+E-commerce platforms like Amazon, Taobao, and
+JD provide users with billions of diverse products
+and have become essential in our daily lives. Due
+to the wide variety of user needs and product cate-
+gories, capturing users’ purchasing intentions is vi-
+tal for both user experience and platform efficiency.
+Query classification, including intent, category, and
+brand prediction, plays a key role in understanding
+
+* Corresponding author.
+
+Classification
+
+Chunyuan Yuan1, Chong Zhang1, Zheng Fang1, Ming Pang1,*,
+
+1JD.COM,
+
+{yuanchunyuan1,zhangchong78,fangzheng21,pangming8,jiangxue,pengchangping,linzhangang,lawching}@jd.com
+
+users’ shopping needs and supports the subsequent
+modules of the search system.
+
+The inherent characteristics of e-commerce
+queries, which are typically short, and ambiguous,
+bring significant challenges for query classification.
+To solve the problem of insufficient information
+caused by short queries, some deep learning-based
+models, such as XML-CNN (Liu et al., 2017),
+KRF (Ma et al., 2020), HiAGM (Zhou et al., 2020),
+and LSAN (Xiao et al., 2019) have been proposed
+to learn the contextual information of documents
+to enhance the representation learning of queries.
+Some recent query classification models, such as
+HCL4QC (Zhu et al., 2023), SMGCN (Yuan et al.,
+2024), and HQC (He et al., 2024) also explore uti-
+lizing the hierarchical category tree structure or
+instance hierarchy to facilitate models to learn ex-
+ternal information beyond query information.
+
+Industrial methods for query classification typi-
+cally rely on users’ click behavior to generate train-
+ing samples. While using real user interactions
+can improve model accuracy, it also introduces a
+dependency cycle known as the “Matthew effect.”
+This cycle leads to biased training data, where pop-
+ular queries receive excessive focus, skewing the
+model’s understanding and limiting its ability to
+generalize to tail queries. Moreover, existing mod-
+els often handle subtasks separately, overlooking
+potential synergies that could enhance efficiency
+in model optimization and development. The lack
+of a unified framework further impedes the shar-
+ing of insights and improvements across different
+subtasks, thereby restricting overall performance.
+
+To address these challenges, we propose a semi-
+supervised scalable unified framework (SSUF) for
+e-commerce query classification. SSUF is designed
+to overcome the above problems by introducing
+a set of scalable modules: (1) Label-enhanced
+module, (2) Knowledge-enhanced module, and (3)
+Structure-enhanced module to enhance query and
+label representations with prior knowledge, reduce
+
+1263
+
+Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 6: Industry Track), pages 1263–1271
+
+July 28-30, 2025 ©2025 Association for Computational Linguistics
+
+
+dependency on posterior labels and enhances the
+model’s ability to generalize from limited data.
+Each module within SSUF is designed to be highly
+pluggable, allowing for flexible adaptation to the
+specific needs of different subtasks. This modular-
+ity ensures that the framework can be tailored to
+enhance various aspects of query classification.
+
+The contributions of this paper are as follows:
+
+• We propose a novel unified framework to
+improve the optimization efficiency of e-
+commerce query classification models.
+
+• We design three scalable modules that en-
+hance the query and label representations and
+break the “Matthew vicious cycle” to improve
+the performance of query classification.
+
+• We conduct extensive offline and online A/B
+experiments, and SSUF significantly outper-
+forms existing strong baselines. It has been de-
+ployed at an e-commerce platform and brings
+great commercial value.
+
+2
+Related Work
+
+2.1
+Multi-label Classification
+
+Multi-label classification is a vital area in machine
+learning, where each instance can be linked to mul-
+tiple labels. Machine learning methods address this
+problem by transforming the multi-label problem
+into several single-label tasks (Tsoumakas et al.,
+2007, 2009; Read et al., 2011). Recently, deep
+learning models, such as XML-CNN (Liu et al.,
+2017), LSAN (Xiao et al., 2019) and LEAM (Wang
+et al., 2018) utilize contextual information or label-
+specific attention to enhance the interaction be-
+tween document and labels for classification.
+
+2.2
+Query Classification
+
+Early models mainly relied on deep learning
+models, such as CNN (Hashemi et al., 2016),
+LSTMs (Sreelakshmi et al., 2018), and attention-
+based models (Zhang et al., 2021; Yuan et al., 2023)
+to extract fine-grained features for classification.
+Recent works like PHC (Zhang et al., 2019) ex-
+plore multi-task frameworks to jointly optimize
+query classification and textual similarity, while
+DPHA (Zhao et al., 2019) leverages label graph-
+based neural networks to model label correlations.
+HCL4QC (Zhu et al., 2023), SMGCN (Yuan et al.,
+2024), and HQC (He et al., 2024) use hierarchical
+structures and instance hierarchy to learn informa-
+tion beyond query text.
+
+3
+Model
+
+In this section, we first formally define the query
+classification task. Then, we describe different
+modules of SSUF and analyze the influence of the
+model during the training and inference process.
+
+3.1
+Label-enhanced Module
+
+Instead of directly using the label index as label em-
+bedding, we employ BERT (Kenton and Toutanova,
+2019) as the encoder for labels to learn the semantic
+representation of the label.
+
+The input of the text encoder is a character
+sequence of label, which is comprised of two
+parts: (1) the label name n = [n1, n2, . . . , nL],
+and (2) the enhanced label side information m =
+[m1, m2, . . . , mLm], which is retrieved from (1) la-
+bel description, such as product words, frequently
+searched query terms, etc. (2) world knowledge
+generated by LLM.
+
+The label’s character sequences are fed into
+BERT to encode label representation:
+
+Cj = BERTCLS([n1, . . . , nL, m1, . . . , mLm]) ,
+
+(1)
+where Cj ∈R1×d is the “CLS” representation of
+the last layer of BERT. In the same way, we can get
+the representation of query Qi ∈R1×d.
+
+3.2
+Knowledge-enhanced Module
+
+Industrial methods for query classification have re-
+lied on users’ posterior click behavior to generate
+training samples. However, it leads to the "Matthew
+vicious cycle" and results in biased training data,
+where popular queries receive more attention, skew-
+ing the model’s understanding and limiting its abil-
+ity to generalize to less frequent queries.
+
+We propose a semi-supervised module to over-
+come the limitations of posterior labels. However,
+we found that for queries with ambiguous seman-
+tics, it is often inaccurate to directly compute semi-
+supervised labels for queries and labels. For exam-
+ple, the query “Black 16pro” refers to an Apple mo-
+bile phone model, but due to insufficient semantic
+information, similarity scores with relevant labels
+such as “mobile phone” and “second-hand mobile
+phone” are low. This results in the semi-supervised
+signal failing to effectively recall related labels.
+To solve this issue, we incorporate a knowledge-
+enhanced module to improve the representation of
+queries for semi-supervised labeling.
+
+We can use (1) the posteriori knowledge, such as
+the user’s frequently clicked or bought product la-
+
+1264

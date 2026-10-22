@@ -1,0 +1,213 @@
+Bhavuk Singhal
+
+Meesho, India
+
+bhavuk.singhal@meesho.com
+
+Abstract
+
+Accurately inferring implicit physical attributes
+of products, such as weight, is critical for large-
+scale e-commerce logistics but challenging due
+to sparse or unreliable textual metadata and
+high visual variability. We formulate weight
+estimation as a grounded multimodal reasoning
+problem and investigate whether large vision-
+language models (LVLMs) can infer discretized
+weight buckets through in-context learning
+(ICL) over product images and descriptions.
+We introduce a scalable inference framework
+that conditions predictions on automatically re-
+trieved, category-specific exemplars and pro-
+pose a distribution-calibrated retrieval strategy
+that aligns few-shot contexts with the empir-
+ical weight distribution of each product sub-
+category. Offline evaluations shows that across
+14 high-variance product categories, our ap-
+proach significantly outperforms strong mul-
+timodal KNN baselines in both exact-match
+accuracy and near-bucket reliability. Deployed
+in production on a large e-commerce platform,
+our system processes millions of listings daily
+and reduces shipping-related revenue leakage
+by ∼22%, demonstrating that multimodal ICL
+can serve as a practical and cost-effective al-
+ternative to manual or hardware-based verifica-
+tion.
+
+1
+Introduction
+
+In large-scale e-commerce platforms, many opera-
+tional decisions depend on estimating implicit phys-
+ical attributes of products, such as weight, that are
+rarely stated explicitly in textual metadata. Infer-
+ring these attributes from noisy product listings re-
+quires grounding language descriptions with visual
+cues including size, material, and packaging den-
+sity. Recent advances in large vision-language mod-
+els (LVLMs) enable multimodal reasoning over
+images and text through in-context learning, offer-
+ing a promising alternative to manual verification
+or specialized hardware. However, it remains un-
+clear whether such models can reliably perform
+
+Proceedings of the 64th Annual Meeting of the Association for Computational Linguistics (Volume 6: Industry Track), pages 592–603
+
+Grounded Multimodal In-Context Learning for Product Weight Estimation
+
+at Scale in E-commerce
+
+Arsh Keshari
+Meesho, India
+
+Ravindra Kumar Yadav
+
+Meesho, India
+
+arsh.keshari@meesho.com
+
+ravindra@meesho.com
+
+fine-grained physical inference at the scale and
+variability encountered in real-world commerce.
+
+Weight estimation presents a particularly chal-
+lenging setting. At the most granular level of prod-
+uct taxonomy, Sub-Sub-Categories (SSCats), visu-
+ally similar items often exhibit large variations in
+mass due to differences in material composition
+and construction. For instance, products in the
+same “Spice Rack” (Figures 1a, 1b, 1c) or “Mops
+with Bucket” (Figures 1d, 1e, 1f) category may
+vary by several kilograms despite looking nearly
+identical. This high intra-category variance creates
+a long-tailed distribution where simple heuristics
+or average-based predictions fail to generalize.
+
+Existing solutions primarily rely on manual au-
+dits, hardware-based weighing (Shiprocket, 2025),
+or unimodal machine learning models. Although
+hardware methods are accurate, they are costly and
+hard to scale across millions of listings. Traditional
+models like KNN or Random Forests (Bain & Com-
+pany, 2025; Verma et al., 2025) depend on shallow
+text features and historical averages, lacking the
+multimodal reasoning needed to infer material den-
+sity or volume. As a result, they often produce
+consistent under- or over-estimates, leading to fi-
+nancial losses and operational inefficiencies.
+
+This work investigates multimodal ICL with
+LVLMs as a scalable framework for grounded phys-
+ical attribute inference. Compared to fine-tuning
+approaches, ICL enables rapid onboarding of new
+product categories without additional retraining
+or labeled data, which is critical for continuously
+evolving e-commerce catalogs. Our contributions
+are summarized below.
+
+• We formulate product weight estimation as an
+implicit physical attribute inference problem
+and show that LVLMs can perform grounded
+multimodal reasoning over images and textual
+metadata through few-shot ICL.
+
+• We propose an automated, category-aware re-
+
+592
+
+July 2-7, 2026 ©2026 Association for Computational Linguistics
+
+
+(a) 2 kg
+(b) 4 kg
+(c) 7 kg
+
+(d) 2.5 kg
+(e) 8 kg
+(f) 11 kg
+
+trieval strategy that aligns few-shot exemplars
+with the empirical weight distribution of each
+product sub-category. We demonstrate that
+this calibration substantially improves accu-
+racy and reduces misestimation compared to
+other methods.
+
+• We conduct systematic studies on exemplar
+quantity, retrieval strategy, and model back-
+bones, revealing accuracy saturation effects
+and non-linear cost–latency trade-offs that in-
+form practical deployment of LVLM-based
+inference at scale.
+
+• Deployed in production across four high-
+variance categories and millions of daily list-
+ings, our approach improves exact bucket ac-
+curacy by 34% and reduces shipping-related
+revenue leakage by 22%, demonstrating the
+real-world viability of multimodal ICL for lo-
+gistics optimization.
+
+2
+Related Work
+
+Estimating physical product attributes from catalog
+metadata sits at the intersection of the following
+systems:
+
+Attribute Value Extraction (AVE). Early AVE
+methods relied on sequence labeling and structured
+prediction (e.g., Bi-LSTMs, CRFs) to extract ex-
+plicit textual signals (Zheng et al., 2018; Zhu et al.,
+2020; Xu et al., 2019; Wang et al., 2020; Gong
+and Eldardiry, 2024). However, these unimodal
+approaches struggle to infer implicit physical prop-
+erties like weight or volume. Recent Large Vision-
+Language Models (LVLMs)—including LLaVA
+(Liu et al., 2023a), InstructBLIP (Dai et al., 2023),
+
+Figure 1: Products images listed on e-commerce platform.
+
+and BLIP-2 (Li et al., 2023)—enable joint reason-
+ing over images and text for latent attribute infer-
+ence. While EIVEN (Zou et al., 2024) utilizes gen-
+erative estimation, our work focuses on scalable,
+high-throughput multimodal in-context learning for
+industrial settings using a native LVLM.
+
+ICL and Retrieval. ICL allows models to adapt
+to new tasks via few-shot demonstrations (Brown
+et al., 2020; Dong et al., 2024; Von Oswald et al.,
+2023), but performance is highly sensitive to ex-
+emplar selection and ordering (Lu et al., 2022; Liu
+et al., 2022). This is particularly challenging for
+high-cardinality tasks like weight bucket prediction,
+where visual and material cues vary significantly
+(Milios et al., 2023). While prior strategies use
+active learning or retrieval to improve context qual-
+ity (Rubin et al., 2022; Ram et al., 2023), they are
+often computationally expensive. We propose a
+lightweight, distribution-calibrated retrieval strat-
+egy that aligns exemplars with category-specific
+distributions, enhancing calibration and efficiency
+for large-scale deployment.
+
+Industrial Logistics Systems.
+Inaccurate
+weight and dimension estimates cause operational
+inefficiencies and revenue leakage (Eshopbox,
+2025; Redseer, 2024). While hardware-based sys-
+tems and manual audits are precise, they are costly
+and difficult to scale (Shiprocket, 2025). Current
+software baselines (e.g., KNN or tree-based mod-
+els) rely on historical averages or shallow embed-
+dings, failing to reason about material density or
+structural cues (Kasemrat and Kraiwanit, 2024; Zi-
+abari, 2025). Our work bridges this gap by using
+LVLM-based multimodal in-context inference as a
+scalable, cost-effective, and efficient alternative to
+traditional verification methods.
+
+593

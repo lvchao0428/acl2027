@@ -1,0 +1,8 @@
+# Stealthy Attack on Large Language Model based Recommendation
+> 来源文件：Stealthy Attack on Large Language Model based Recommendation.pdf
+
+## 英文原文摘要（Original Abstract）
+Recently, the powerful large language models (LLMs) have been instrumental in propelling the progress of recommender systems (RS). However, while these systems have flourished, their susceptibility to security threats has been largely overlooked. In this work, we reveal that the introduction of LLMs into recommendation models presents new security vulnerabilities due to their emphasis on the textual content of items. We demonstrate that attackers can significantly boost an item's exposure by merely altering its textual content during the testing phase, without requiring direct interference with the model's training process. Additionally, the attack is notably stealthy, as it does not affect the overall recommendation performance and the modifications to the text are subtle, making it difficult for users and platforms to detect. Our comprehensive experiments across four mainstream LLM-based recommendation models demonstrate the superior efficacy and stealthiness of our approach. Our work unveils a significant security gap in LLM-based recommendation systems and paves the way for future research on protecting these systems.
+
+## 中文翻译（Chinese Translation）
+近年来，强大的大语言模型（LLM）在推动推荐系统（RS）进步方面发挥了重要作用。然而，在这些系统蓬勃发展的同时，它们对安全威胁的脆弱性却在很大程度上被忽视了。本研究揭示：将 LLM 引入推荐模型后，由于模型高度依赖物品的文本内容，从而引入了新的安全漏洞。我们证明，攻击者只需在测试阶段修改物品的文本内容，即可显著提升该物品的曝光度，而无需直接干预模型的训练过程。此外，该攻击具有极强的隐蔽性——它不影响整体推荐性能，且对文本的修改十分微妙，使用户和平台难以察觉。我们在四个主流的基于 LLM 的推荐模型上进行了综合实验，验证了该方法卓越的攻击效果与隐蔽性。本工作揭示了基于 LLM 的推荐系统中一个重要的安全缺口，并为未来保护这些系统的研究铺平了道路。

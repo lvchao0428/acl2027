@@ -1,0 +1,334 @@
+Jiaqi Li1,3*, Yanming Li1,3*, Xiao li Shen3,4, Chuanyi Zhang2, Guilin Qi3,4†, Sheng Bi5
+
+Abstract
+
+In e-commerce, effective product Attribute
+Mining (AM) is essential for enhancing product
+features and aiding consumer decisions. How-
+ever, current AM methods often focus on ex-
+tracting attributes from unimodal text, under-
+utilizing multimodal data. In this paper, we
+propose a novel framework called Multimodal
+Self-Correction Instruction Tuning (MSIT) to
+mine new potential attributes from images and
+texts with Multimodal Large Language Mod-
+els (MLLMs). The tuning process involves
+two datasets: Attribute Generation Tuning Data
+(AGTD) and Chain-of-Thought Tuning Data
+(CTTD). AGTD is constructed utilizing in-
+context learning with a small set of seed at-
+tributes, aiding the MLLMs in accurately ex-
+tracting attribute-value pairs from multimodal
+information. To introduce explicit reasoning
+and improve the extraction accuracy, we con-
+struct CTTD, which incorporates a structured
+5-step reasoning process for self-correction. Fi-
+nally, we employ a 3-stage inference process to
+filter out redundant attributes and sequentially
+validate each generated attribute. Comprehen-
+sive experimental results on two datasets show
+that MSIT outperforms state-of-the-art meth-
+ods. We will release our code and data in the
+near future.
+
+1
+Introduction
+
+In the realm of e-commerce, product attributes
+enrich product selling points, helping consumers
+make informed decisions (Xu et al., 2019; Yan
+et al., 2021; Shinzato et al., 2023).
+However,
+with the constant emergence of new products, e-
+commerce often struggles with incomplete attribute
+
+*
+J. Li and Y. Li contributed equally to this work and
+should be considered co-first authors.
+
+†
+Corresponding author.
+
+Open-World Attribute Mining for E-Commerce Products with Multimodal
+
+Self-Correction Instruction Tuning
+
+1 School of Cyber Science and Engineering, Southeast University, Nanjing, China
+2 College of Artificial Intelligence and Automation, Hohai University, Nanjing, China
+3 Key Laboratory of New Generation Artificial Intelligence Technology and Its
+Interdisciplinary Applications (Southeast University), Ministry of Education, China
+4School of Computer Science and Engineering, Southeast University, Nanjing, China
+5Law and Innovation Lab, School of Law, Southeast University
+jqli@seu.edu.cn, liyanming@seu.edu.cn, 220232260@seu.edu.cn, 20231104@hhu.edu.cn
+
+gqi@seu.edu.cn,shengbi@seu.edu.cn
+
+data. To this end, Open-World Product Attribute
+Mining (AM) (Zhang et al., 2022; Xu et al., 2023)
+technology addresses this need by extracting new
+potential attributes from product profiles. Although
+numerous works have demonstrated outstanding
+performance in AM, they still face the following
+limitations:
+
+“ Organic 
+Matcha Green 
+Tea;100% 
+Pure Culinary 
+Grade ...”  
+
+Attribute 
+Generation 
+Tuning Data
+
+{ "Attributes": 
+       { "Tea_Type": 
+"Green",
+        "Sugar": 
+"Sugar-free"
+          ... }  }
+
+{ "Attributes": 
+       { "Tea_Type": 
+"Green",
+        "Sugar": 
+"Sugar-free"
+          ... }  }
+
+"Organic Matcha Green 
+Tea; Japanese Everyday 
+Drink | 100% Pure 
+Culinary Grade | Sugar 
+Free, Eco-friendly Bag..."  
+
+"Organic Matcha Green 
+Tea; Japanese Everyday 
+Drink | 100% Pure 
+Culinary Grade | Sugar 
+Free, Eco-friendly Bag..."  
+
+PLM
+PLM
+
+PLM
+
+CoT 
+Tuning Data
+
+MLLM
+Finetune
+
+(a) Underutilizating multimodal information
+(a) Underutilizating multimodal information
+
+Batch Attribute Generation
+
+{ "Attributes":
+       { "Harvest":
+ "Premium First Harvest"
+         "Marketing Claims": 
+ "Calm and clarity"
+        ... } 
+}
+
+{ "Attributes":
+       { "Harvest":
+ "Premium First Harvest"
+         "Marketing Claims": 
+ "Calm and clarity"
+        ... } 
+}
+
+“ Organic 
+Matcha Green 
+Tea;100% Pure 
+Culinary 
+Grade ...”  
+
+“ Organic 
+Matcha Green 
+Tea;100% Pure 
+Culinary 
+Grade ...”  
+
+Filtering Repeated Attributes
+
+MLLM
+
+MLLM
+
+Sequential Attribute Inference With COT
+
+{ "Attributes": 
+       {"Tea_Type": "Green",
+        "Product_Shape": "Powder",
+        "Weight": "1lb"
+        ... } 
+}
+
+(b) Absence of explicit reasoning
+
+Invalid Attribute
+Invalid Attribute
+
+Valid Attribute from Text
+Valid Attribute from Text
+
+(c)  Our Work
+
+Valid Attribute from Image
+Valid Attribute from Image
+
+Figure 1: Comparison of current methods and our work.
+(a) Current methods rely on textual data, missing out
+attributes present in images. (b) Existing approaches
+lack explicit reasoning, leading to extracting invalid at-
+tributes. (c) Our work leverages multimodal data and a
+chain-of-thought process for accurate attribute extrac-
+tion.
+
+1) Underutilization of multimodal informa-
+tion. Recent AE methods (Zhang et al., 2022; Xu
+et al., 2023) rely solely on textual data, extracting
+potential attributes from given descriptions or titles
+in the product profiles. However, product images
+also offer valuable attributes that can enhance the
+shopping experience for consumers. As illustrated
+in Figure 1(a), current models often overlook key
+visual information in product images. In Figure
+1(c), attributes like ‘Product_shape’ and ‘Weight’
+are visible on the packaging, but are not extracted
+by models that only use textual data. By integrating
+both textual and visual data, a more comprehensive
+
+1702
+
+Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers), pages 1702–1714
+
+July 27 - August 1, 2025 ©2025 Association for Computational Linguistics
+
+
+set of attributes can be extracted.
+
+2) Absence of explicit reasoning. Earlier works
+(Ghani et al., 2006; Zheng et al., 2018a; Mehta
+et al., 2021; Fu et al., 2022) treat AM as a clas-
+sification task, leveraging pre-trained models to
+implicitly derive classification results. More re-
+cent researchers (Zou et al., 2024; Shinzato et al.,
+2023; Zhang et al., 2023b; Li et al., 2023b; Chen,
+2024; Khandelwal et al., 2023) utilize generative
+language models, which typically generate results
+directly without an explicit reasoning process. As
+shown in Figure 1(b), models without explicit rea-
+soning capabilities may extract attributes like ‘Mar-
+keting Claims’ without justifying their relevance or
+correctness. The absence of an explicit reasoning
+process means these models cannot effectively val-
+idate and refine their outputs based on context and
+common sense, leading to suboptimal results.
+
+To address these limitations, we propose a novel
+framework called Multimodal Self-Correction In-
+struction Tuning (MSIT) for the task of Open-
+World E-commerce Product Attribute Mining. Our
+
+approach leverages generative Multimodal Large
+Language Models (MLLMs) to mine new potential
+attributes from both images and texts. The tuning
+process involves two datasets: Attribute Genera-
+tion Tuning Data (AGTD) and Chain-of-Thought
+Tuning Data (CTTD). AGTD is constructed uti-
+lizing in-context learning with a small set of seed
+attributes. AGTD aids MLLMs in accurately ex-
+tracting attribute-value pairs from multimodal in-
+formation. To address the limitation of lacking
+explicit reasoning, we construct CTTD to guide the
+MLLMs in self-correction. CTTD is created by
+leveraging the attributes generated in AGTD and
+incorporating a structured 5-step reasoning process.
+In the inference phase, our approach employs a
+3-stage process to extract attributes accurately.
+The primary contributions of our work are as
+follows:
+
+• To the best of our knowledge, we are the pi-
+oneers in exploring extracting potential at-
+tributes with MLLMs, extending Attribute
+Mining to multimodal settings.
+
+• We propose a comprehensive framework that
+can discover attributes from both textual or
+visual information, followed by a 5-step chain-
+of-thought reasoning process to self-correct
+the generated attributes.
+
+• We expand two unimodal datasets to multi-
+
+modal datasets. The experimental results on
+two datasets demonstrate the superiority of
+our method compared to existing methods.
+
+2
+Related Work
+
+Multi-modal Large Language Models. Multi-
+modal Large Language Models (MLLMs) extend
+Large Language Models (LLMs) by integrating
+non-textual modalities for various tasks. BLIP-
+2 (Li et al., 2023a) achieves state-of-the-art per-
+formance in vision-language tasks by leveraging
+frozen pre-trained image encoders, language mod-
+els, and lightweight query transformers. Instruct-
+BLIP (Dai et al., 2023) improves upon BLIP-2 by
+performing vision-language instruction tuning, out-
+performing the Flamingo model (Alayrac et al.,
+2022) in zero-shot tasks. LLAVA (Liu et al., 2023)
+uses GPT-4 (OpenAI, 2023) to generate multi-
+modal instruction-following data and trains large-
+scale models for general visual and language un-
+derstanding.
+Attribute Mining. Research in product attribute
+mining, particularly in e-commerce, has gained
+significant attention (Shinzato et al., 2022; Kara-
+manolakis et al., 2020; Zheng et al., 2018b). Open-
+tag (Zheng et al., 2018a) uses neural networks and
+active learning to identify missing attributes, but
+does not expand attribute frameworks. LATEX-
+Numeric (Mehta et al., 2021) extracts numerical at-
+tributes via distant supervision and multitask learn-
+ing, eliminating manual labeling. CMA-CLIP (Fu
+et al., 2022) models attribute completion as a clas-
+sification task but assume a closed-world scenario.
+Other approaches (Roy et al., 2021; Xu et al., 2023)
+treat attribute completion as a generative modeling
+problem, using large language models to generate
+attribute values, but are limited to specific prod-
+uct categories and do not consider personalized
+attribute generation.
+
+3
+Proposed Method
+
+In Multimodal Open-World Attribute Mining task,
+the i-th product Pi is composed of a text (title and
+bullet point) Ti and an image Ii. The text con-
+sists of wi tokens Ti =
+
+
+
+. Our
+goal is to extract a set of relevant and applicable
+attributes Ai = {a1, a2, ..., ak} from the given in-
+puts, where k is the number of mined attributes.
+These attributes can range from basic features such
+as color and size to more complex attributes like
+material and style. Each attribute corresponds to
+
+si
+
+1, si
+2, . . . , si
+wi
+
+1703

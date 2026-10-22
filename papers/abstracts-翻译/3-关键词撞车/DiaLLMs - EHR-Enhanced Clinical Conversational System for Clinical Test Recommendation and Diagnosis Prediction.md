@@ -1,0 +1,10 @@
+# DiaLLMs: EHR-Enhanced Clinical Conversational System for Clinical Test Recommendation and Diagnosis Prediction
+> 来源文件：DiaLLMs - EHR-Enhanced Clinical Conversational System for Clinical Test Recommendation and Diagnosis Prediction.pdf
+
+## 英文原文摘要（Original Abstract）
+
+Recent advances in Large Language Models (LLMs) have led to remarkable progresses in medical consultation. However, existing medical LLMs overlook the essential role of Electronic Health Records (EHR) and focus primarily on diagnosis recommendation, limiting their clinical applicability. We propose DiaLLM, the first medical LLM that integrates heterogeneous EHR data into clinically grounded dialogues, enabling clinical test recommendation, result interpretation, and diagnosis prediction to better align with real-world medical practice. To construct clinically grounded dialogues from EHR, we design a Clinical Test Reference (CTR) strategy that maps each clinical code to its corresponding description and classifies test results as "normal" or "abnormal". Additionally, DiaLLM employs a reinforcement learning framework for evidence acquisition and automated diagnosis. To handle the large action space, we introduce a reject sampling strategy to reduce redundancy and improve exploration efficiency. Furthermore, a confirmation reward and a class-sensitive diagnosis reward are designed to guide accurate diagnosis prediction. Extensive experimental results demonstrate that DiaLLM outperforms baselines in clinical test recommendation and diagnosis prediction. Our code is available at Github.
+
+## 中文翻译（Chinese Translation）
+
+大语言模型（LLM）的最新进展在医疗问诊领域取得了显著成效。然而，现有医疗 LLM 忽视了电子健康档案（EHR）的关键作用，且主要聚焦诊断推荐，限制了其临床适用性。我们提出 DiaLLM，这是首个将异构 EHR 数据融入临床对话的医疗 LLM，能够在对话中完成临床检查推荐、结果解读和诊断预测，使其更贴近真实医疗实践。为从 EHR 构建有临床依据的对话，我们设计了临床检查参考（Clinical Test Reference, CTR）策略，将每个临床编码映射到对应描述，并把检查结果划分为"正常"或"异常"。此外，DiaLLM 采用强化学习框架进行证据收集与自动诊断。为应对巨大的动作空间，我们引入拒绝采样策略以减少冗余、提升探索效率；进一步设计了确认奖励和类别敏感的诊断奖励，以引导模型做出准确的诊断预测。大量实验表明，DiaLLM 在临床检查推荐和诊断预测任务上均优于基线。代码已在 Github 开源。

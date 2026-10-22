@@ -1,0 +1,237 @@
+Lakshman Kolasani
+
+Amazon
+kolasl@amazon.com
+
+Abstract
+
+Large language models (LLMs) excel at struc-
+tured information generation but face cost and
+latency challenges when deployed at scale in
+user-facing products. We present a parameter-
+efficient supervised fine-tuning pipeline for
+adapting a small language model (SLM) to
+structured attribute generation in e-commerce
+product listing, enabling continuous model im-
+provement with implicit user feedback without
+expensive manual annotation. Our approach
+involves completeness-deficit guided curation,
+which ranks samples by divergence between
+model predictions and catalog listing attributes,
+selecting the highest completeness gap exam-
+ples for progressive fine-tuning. Our system is
+deployed on a large-scale product listing ser-
+vice, reducing inference costs by 98% and p90
+latency by 70% using a fine-tuned SLM relative
+to the baseline LLM while preserving an 86.4%
+user acceptance rate, translating to significant
+monthly infrastructure savings.
+
+1
+Introduction
+
+Structured attribute generation is a fundamental
+task in e-commerce, where product listings require
+accurate population of hundreds of attributes rang-
+ing from structured fields (size, color, material)
+to unstructured content (titles, descriptions). As
+e-commerce services process millions of requests
+daily, the need for efficient and cost-effective solu-
+tions becomes paramount (Licardo and Tankovic,
+2024). While large language models (LLMs) have
+shown strong performance on this task through in-
+context learning (Brown et al., 2020), deploying
+them at scale presents significant cost and latency
+challenges.
+
+Modern product listing systems process multi-
+modal inputs, combining product images with tex-
+tual descriptions, to generate structured attributes
+that must conform to predefined schemas (Fig-
+ure 1). Using state-of-the-art models like Claude
+
+Proceedings of the 64th Annual Meeting of the Association for Computational Linguistics (Volume 6: Industry Track), pages 585–591
+
+Progressive Fine-Tuning for Cost-Effective Structured Attribute
+
+Generation in E-commerce
+
+Fatemeh Taheri Dezaki
+
+Amazon
+fatimaat@amazon.com
+
+Language Model
+
+Structured Attributes
+
+Inputs
+
+Schema Understanding
+
+brand: "xyz"
+
+Product Image
+
+color: "red"
+
+Multimodal Processing
+
+Product Description
+
+... (50+ attrs)
+
+Attribute Generation
+
+Figure 1: Structured attribute generation task. Mul-
+timodal inputs (product images and descriptions) are
+processed by a language model to generate schema-
+compliant structured attributes.
+
+Sonnet 4.5 (Anthropic, 2025) achieves high quality
+but incurs substantial inference costs. The funda-
+mental question becomes: Can we adapt smaller,
+more efficient models to match the quality of larger
+models for domain-specific industrial applications
+through targeted fine-tuning?
+
+We address this challenge with two key contri-
+butions:
+
+1. Completeness-Deficit Guided Curation:
+Data curation is critical for effective fine-
+tuning. We introduce a domain-specific sam-
+ple selection method for structured attribute
+generation that leverages implicit user feed-
+back. We select training examples where the
+model’s predictions have the largest “com-
+pleteness gap” compared to catalog listing
+attributes, focusing training on areas of weak-
+ness.
+
+2. Progressive Fine-Tuning: We demonstrate
+that progressive model adaptation, where each
+training iteration initializes from the preced-
+ing model state rather than the original base
+model, outperforms cumulative data aggrega-
+tion approaches, achieving higher complete-
+ness with less data and fewer training steps.
+
+Our experiments on a large-scale product list-
+ing system show that a fine-tuned small language
+model (SLM), Amazon Nova 2 Lite (Amazon
+
+585
+
+July 2-7, 2026 ©2026 Association for Computational Linguistics
+
+
+Web Services, 2025), achieves comparable qual-
+
+ity to Claude Sonnet 4.5 (selected as the highest-
+performing model for our use case at the time of
+experimentation) while reducing inference costs
+by 98% and p90 latency by 70%, maintaining an
+86.4% user acceptance rate. We validate these re-
+sults through both offline evaluation and online
+A/B testing.
+
+2
+Related Work
+
+Parameter-Efficient Fine-Tuning
+Low-Rank
+Adaptation (LoRA) (Hu et al., 2022) enables ef-
+ficient fine-tuning by training low-rank adapter ma-
+trices while keeping base model weights frozen.
+This approach has been successfully applied to var-
+ious NLP tasks (Dettmers et al., 2023; Liu et al.,
+2024b), including structured output generation.
+
+Structured Output Generation
+LLMs have
+been applied to structured information extraction
+through prompting (Wei et al., 2022) and fine-
+tuning (Wang et al., 2023; Dagdelen et al., 2024).
+Recent work focuses on schema-constrained gen-
+eration (Li et al., 2024) and structured attribute ex-
+traction for e-commerce (Yang et al., 2023). Fine-
+tuning best practices have been extensively docu-
+mented (Parthasarathy et al., 2024), though domain-
+specific adaptations remain challenging.
+
+Active
+and
+Continual
+Learning
+Our
+completeness-deficit
+guided
+curation
+relates
+to active learning (Settles, 2009), where informa-
+tive samples are selected to maximize learning
+efficiency.
+Progressive fine-tuning connects to
+continual learning (Parisi et al., 2019), which
+addresses how models can learn from sequential
+data without catastrophic forgetting (Kirkpatrick
+et al., 2017). Unlike traditional continual learning
+that focuses on preventing forgetting, our approach
+leverages checkpoint initialization to accelerate
+convergence on new hard examples.
+
+3
+Methodology
+
+Figure 2 illustrates our progressive fine-tuning
+pipeline for structured attribute generation.
+
+3.1
+Problem Formulation
+
+As illustrated in Figure 1, given a product with
+input features x (images, product description), the
+task is to generate a set of structured attributes
+y = {a1, a2, ..., an} where each attribute ai must
+
+Figure 2: Progressive fine-tuning pipeline. Samples
+with the highest completeness gap between model pre-
+dictions and catalog listing attributes are selected for
+LoRA fine-tuning (k new samples per iteration). Dashed
+arrow indicates progressive training where Mt initial-
+izes from Mt−1, unlike cumulative training which
+restarts from base model M0.
+
+conform to a predefined schema including allowed
+values, formats, and constraints.
+
+We define completeness as the percentage of
+requested attributes for which the model generates
+a valid value:
+
+Completeness(y) = |{ai : ai̸ = ∅∧valid(ai)}|
+
+|A|
+
+(1)
+where A is the set of all attributes requested for the
+product category. Importantly, completeness mea-
+sures schema-valid, non-empty predictions rather
+than exact match against ground truth. For ex-
+ample, if a “color” attribute has allowed values
+including “Navy” and “Dark Blue,” a prediction
+of “Navy” when the catalog listing value is “Dark
+Blue” counts as complete, since both are schema-
+valid. Exact match is ill-defined for such attributes
+with multiple valid values. This design reflects the
+deployment context: users review all model sug-
+gestions before submission, so generating any valid
+prediction reduces manual effort. Values outside
+the schema’s allowed set (e.g., a new brand not yet
+registered) are not counted as complete; schemas
+are updated periodically to incorporate emerging
+values. We measure correctness separately through
+manual audits (Section 5.2).
+
+586

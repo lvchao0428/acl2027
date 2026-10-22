@@ -1,0 +1,227 @@
+Visualization Recommendation with Prompt-based Reprogramming of
+
+Xinhang Li1,2*, Jingbo Zhou2†, Wei Chen1, Derong Xu1, Tong Xu1†, Enhong Chen1†
+
+Abstract
+
+Visualization recommendations, which aim
+to automatically match proper visual charts
+for specific data tables, can significantly sim-
+plify the data analysis process.
+Traditional
+approaches in this domain have primarily re-
+lied on rule-based or machine learning-based
+methodologies. These methods often demand
+extensive manual maintenance and yet fail to
+fully comprehend the tabular data, leading to
+unsatisfactory performance. Recently, Large
+Language Models (LLMs) have emerged as
+powerful tools, exhibiting strong reasoning ca-
+pabilities. This advancement suggests their
+substantial promise in addressing visualization
+recommendation challenges. However, effec-
+tively harnessing LLMs to discern and rational-
+ize patterns in tabular data, and consequently
+deduce the essential information for chart gen-
+eration, remains an unresolved challenge. To
+this end, we introduce a novel Hierarchical Ta-
+ble Prompt-based reprogramming framework,
+named HTP. This framework aims to inte-
+grate multi-dimensional tabular data into LLMs
+through a strategically crafted prompt learning
+method while keeping the LLMs’ backbone
+and weights unaltered. The HTP framework
+uniquely incorporates a four-level prompt struc-
+ture, encompassing general, instance, cluster,
+and column levels. This multi-level approach is
+engineered to provide a comprehensive under-
+standing of both general distribution and mul-
+tifaceted fine-grained features of tabular data,
+before inputting the tabular data into the frozen
+LLM. Our empirical studies confirm that the
+HTP framework achieves state-of-the-art per-
+formance, marking an advancement in the field
+of data visualization and analysis.
+
+1
+Introduction
+
+Data visualization, which facilitates effective
+decision-making via better responding the human
+
+*This work was done when the first author was an intern
+in Baidu Research under the supervision of Jingbo Zhou.
+
+†Corresponding authors.
+
+Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers), pages 13250–13262
+
+Large Language Models
+
+1University of Science and Technology of China & State Key Laboratory of Cognitive
+Intelligence, 2Business Intelligence Lab, Baidu Research
+
+xinhangli@mail.ustc.edu.cn, zhoujingbo@baidu.com,
+{chenweicw, derongxu}@mail.ustc.edu.cn, {tongxu,cheneh}@ustc.edu.cn
+
+logits
+
+Fusion
+
+LLM
+Structure 
+
+Attention
+
+Figure 1: Illustration of HTP framework.
+
+sensitivity and efficiency in processing visual in-
+formation (Kosmyna et al., 2018), has become in-
+creasingly crucial nowadays. Traditional visualiza-
+tion tools necessitate extensive effort for manual
+specification, which often requires domain exper-
+tise in data analysis. Therefore, large efforts have
+been made to develop automatic tools for solving
+the visualization recommendation task, i.e., recom-
+mending the proper visual charts.
+
+Generally, prior arts can be divided into two
+categories. The first, known as Rule-based ap-
+proaches (Mackinlay, 1986; Mackinlay et al.,
+2007), relies on expert-designed rules to generate
+visualizations. However, these approaches not only
+suffer the massive manual labor for rule mainte-
+nance, but also struggle to address the combinato-
+rial explosion problem caused by increasing data
+dimensions. In contrast, the Machine Learning-
+based approaches (Dibia and Demiralp, 2019; Li
+et al., 2021) are investigated to automatically learn
+the best matching between tabular data and visual-
+ization elements. Unfortunately, few of them could
+fully extract the multi-level features within tables,
+which severely limits the performance.
+
+Last year has witnessed the prosperity of Large
+Language Models (LLMs), whose advanced ca-
+pabilities of LLM in processing and interpreting
+
+1
+13250
+
+August 11-16, 2024 ©2024 Association for Computational Linguistics
+
+
+complex data unlocks new possibilities in the field
+of data visualization. However, significant chal-
+lenges persist in effectively harnessing the poten-
+tial of an LLM for visualization recommendation.
+Firstly, LLMs are typically designed to process
+sequences of discrete tokens in an unstructured for-
+mat, whereas tables used for visualization often
+display highly structured and predominantly nu-
+merical characteristics, which leads to a mismatch.
+Second, the inherent pre-training of LLMs does not
+naturally encompass the comprehension abilities
+required to interpret complex tabular data. Third,
+rather than fine-tuning the entire model, it is of-
+ten preferable to keep the LLM backbone “frozen”.
+This approach ensures the model’s versatility in
+supporting a variety of tasks without compromis-
+ing its fundamental capabilities.
+
+To this end, we propose a novel Hierarchical
+Table Prompt-based reprogramming framework
+(HTP), to adapt LLM for visualization recommen-
+dation without altering the backbone structure. The
+essence of HTP lies in leveraging data-driven multi-
+level prompts to adaptively reprogram the tabular
+data across various dimensions, thereby bridging
+the gap between the structured nature of tabular
+data, as well as the inherent capabilities of LLMs
+for textual processing. Specifically, HTP utilizes
+four levels of prompts as follows:
+• General-level prompt, which is employed to
+describe the overall distribution of table dataset,
+while facilitating information sharing and integra-
+tion among prompts at various levels, thereby en-
+hancing the generalization performance of LLM.
+• Instance-level prompt, which connects the in-
+dividual table instances with various charts, by
+leveraging the specific distribution of tabular data
+and corresponding chart.
+• Cluster-level prompt, which is generated via
+feature extraction and clustering, and targets en-
+hancing the LLM to capture the implicit patterns
+that exist within the table datasets, as well as the
+correlations among patterns.
+• Column-level prompt, which originates from
+the inherent structural information of tables, and
+highlights the columnar organization to improve
+the column-level information processing, and
+support cross-column comprehension.
+
+Based on these four prompts, as illustrated in
+Figure 1, we concatenate prompts at general, in-
+stance, and cluster levels with a serialized table
+before feeding them into LLMs, thereby facilitat-
+ing table-specific knowledge extraction and inte-
+
+gration. Meanwhile, the column-level prompts are
+prepended to encoded inputs to retain the structural
+information of tables, thereby improving the dis-
+tinction among columns, and fostering a contextual
+understanding between them. The contribution of
+this paper could be summarized as follows:
+
+• To the best of our knowledge, we are the first
+to utilize LLMs to explore the visualization rec-
+ommendation task through soft prompt-based re-
+programming, without altering the pre-trained
+backbone model.
+• A novel prompt-based framework is proposed to
+reprogram the hierarchical table information into
+multi-prompts, which enhances the comprehen-
+sion capabilities of LLMs.
+• Extensive experiments on real-world datasets
+demonstrate the effectiveness of the proposed
+HTP compared with state-of-the-art approaches.
+
+2
+Related Work
+
+2.1
+Visualization Recommendation
+
+Prior researches on automated visualization rec-
+ommendation includes rule-based and machine
+learning-based approaches. Rule-based approaches
+(Mackinlay, 1986; Roth et al., 1994; Perry et al.,
+2013; Wongsuphasawat et al., 2016) are based
+on manually developed rules, which heavily rely
+on expert knowledge, and have high maintenance
+costs. Moreover, as table size grows, these meth-
+ods may encounter combinatorial explosion issues.
+Recently, machine learning-based methods have
+shown notable progress in enhancing recommen-
+dation accuracy and scalability. (Luo et al., 2018)
+employed expert rules for initial visualizations, and
+evaluated them using a trained classifier. (Li et al.,
+2021; Hu et al., 2019) formulated the visualization
+recommendation challenge as a series of classi-
+fication tasks, learn to predict labels for various
+design choices, while (Zhou et al., 2020; Dibia
+and Demiralp, 2019) cast the challenge as a se-
+quence generation problem. The former utilized
+a Deep Q-Network (DQN) for selecting action to-
+kens to fill the predefined chart templates, while
+the latter employed a seq2seq model to autoregres-
+sively generate JSON-encoded charts. However,
+these approaches are limited to learning the exist-
+ing knowledge within datasets, and lack sufficient
+exploration of multifaceted table features, such as
+table patterns and structures, leading to a limited
+comprehension of complicated tables. Recently,
+some researchers (Dibia, 2023; Ko et al., 2024;
+
+2
+13251

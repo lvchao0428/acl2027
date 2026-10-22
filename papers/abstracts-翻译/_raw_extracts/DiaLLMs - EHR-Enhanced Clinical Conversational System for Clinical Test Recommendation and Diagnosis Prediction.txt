@@ -1,0 +1,243 @@
+Test Recommendation and Diagnosis Prediction
+
+‡ Salesforce AI Research
+lemontreejying@gmail.com, tkz5084@psu.edu, vuh14@psu.edu *
+
+Abstract
+
+Recent advances in Large Language Models
+(LLMs) have led to remarkable progresses in
+medical consultation. However, existing medi-
+cal LLMs overlook the essential role of Elec-
+tronic Health Records (EHR) and focus pri-
+marily on diagnosis recommendation, limit-
+ing their clinical applicability. We propose
+DiaLLM, the first medical LLM that inte-
+grates heterogeneous EHR data into clinically
+grounded dialogues, enabling clinical test rec-
+ommendation, result interpretation, and di-
+agnosis prediction to better align with real-
+world medical practice.
+To construct clini-
+cally grounded dialogues from EHR, we de-
+sign a Clinical Test Reference (CTR) strat-
+egy that maps each clinical code to its cor-
+responding description and classifies test re-
+sults as "normal" or "abnormal". Addition-
+ally, DiaLLM employs a reinforcement learn-
+ing framework for evidence acquisition and
+automated diagnosis. To handle the large ac-
+tion space, we introduce a reject sampling strat-
+egy to reduce redundancy and improve explo-
+ration efficiency. Furthermore, a confirmation
+reward and a class-sensitive diagnosis reward
+are designed to guide accurate diagnosis pre-
+diction. Extensive experimental results demon-
+strate that DiaLLM outperforms baselines in
+clinical test recommendation and diagnosis pre-
+diction. Our code is available at Github1.
+
+1
+Introduction
+
+Rapid advancements in LLMs (Touvron et al.,
+2023; Wu et al., 2023) expanded opportunities to
+improve diagnostic assistance and patient interac-
+tions in the healthcare domain(Biswas, 2023; Li
+et al., 2023; Shah, 2024; Singhal et al., 2023), and
+clinical conversational systems (Wang et al., 2023a;
+Yang et al., 2024b) have emerged as a promising
+
+approach to enhance clinical reasoning and assist
+
+*Correspondence to Vasant Honavar and Tianxiang Zhao.
+1https://github.com/WeijieyingRen/DiaLLMs
+
+Findings of the Association for Computational Linguistics: ACL 2025, pages 25622–25635
+
+DiaLLMs: EHR Enhanced Clinical Conversational System for Clinical
+
+Weijieying Ren†, Tianxiang Zhao†, Lei Wang‡, Tianchun Wang†, Vasant Honavar†
+
+† College of Information Sciences and Technology, Pennsylvania State University
+
+Figure 1: Structured representation of EHR data, illus-
+trating patient demographics, symptoms, clinical tests
+(e.g., lab test, vital signs), and physician decisions over
+time. Symptoms and diagnoses are encoded using ICD
+codes, while clinical tests follow the LOINC system.
+
+doctors with diagnosis. However, as shown in Ta-
+ble 1, existing studies primarily rely on synthetic di-
+alogues generated from medical knowledge graph
+(Wang et al., 2023a) or open medical Question An-
+swer (QA) (Labrak et al., 2024) and are difficult to
+work on real-world healthcare settings which use
+Electronic Health Records (EHR). Furthermore,
+the diagnosis workflow involves multiple critical
+sub-tasks, including the inquiry of clinical lab tests
+and the interpretation of their results before giving
+the diagnosis results, which are often neglected in
+current approaches (Zhou et al., 2023; Liu et al.,
+2024). Consequently, existing explorations in the
+clinical conversational system are still far from
+practical healthcare scenarios, primarily due to
+challenges in understanding EHR and adapting to
+real-world diagnosis workflows (Li et al., 2024).
+
+How to learn from EHR data? EHR data is a
+comprehensive digital record encompassing a pa-
+tient’s medical history, treatments, test results, and
+clinical decisions. As shown in Figure 1, EHR cap-
+tures multiple clinical visits and can be structured
+as a dialogue for clinical conversational systems.
+However, its heterogeneity and domain-specific
+nature pose a fundamental challenge, limiting com-
+patibility with existing LLMs (Li et al., 2024). Un-
+like general NLP tasks, EHR data includes nu-
+
+25622
+
+July 27 - August 1, 2025 ©2025 Association for Computational Linguistics
+
+
+DiaLLM
+EHR data
+
+merical values, categorical attributes from clinical
+tests, and domain-specific terminologies such as
+ICD codes and LOINC lab identifiers (Sui et al.,
+2024; Liang et al., 2024). These complexities re-
+quire precise numerical reasoning and contextual
+understanding. While LLMs benefit from massive
+text-based data and are trained using next-token
+prediction (Zhao et al., 2023), they exhibit signif-
+icant weaknesses in understanding numeric and
+specialized clinical knowledge (Sui et al., 2024).
+
+Which Service should Clinical Conversa-
+tional System Provide? The second challenge lies
+in the alignment between LLM-supported conver-
+sational system and clinical workflows. As shown
+in Table 1, existing works primarily focus on diag-
+nosis assistance using "symptom-diagnosis" con-
+versational data, which oversimplifies the diagnos-
+tic process and limits practical applicability. In
+a typical diagnostic scenario, a patient presents
+symptoms, prompting the clinician to iteratively
+gather information through inquiries and clinical
+lab tests. This process follows a cycle of ‘evidence
+acquisition, results interpretation, and diagnosis
+confirmation’, with the patient’s medical trajec-
+tory information promptly recorded in the EHR
+data. Simulating clinicians’ evidence acquisition
+and automated diagnosis process within LLMs still
+remains unexplored (Zhou et al., 2023).
+
+Motivation of DiaLLM. In this work, we pro-
+pose a novel conversational agent, named DiaLLM,
+which provides an EHR-grounded transformation
+pipeline and explicitly models clinicians’ reason-
+ing processes for evidence acquisition and auto-
+mated diagnosis.
+
+Technically, the EHR-grounded transformation
+aims to convert EHR data into dialogues that are
+aligned with common-sense knowledge and inter-
+pretable to LLMs. It first converts the EHR data
+into a single or multi-turn dialogue dataset, struc-
+tured according to the patient’s clinical visit time-
+
+Model
+Main Data Source
+Function
+Training Method
+Language
+
+ChatDoctor (Li et al., 2023)
+Medical Consultation Website
+Diagnosis Assistance
+SFT
+English
+DoctorGLM (Xiong et al., 2023)
+Physician-Patient Dialogues
+Diagnosis Assistance
+SFT
+Chinese
+BenTsao (Wang et al., 2023a)
+Medical knowledge Graphs
+Diagnosis Assistance
+SFT
+Chinese
+Zhongjing (Yang et al., 2024b)
+Proprietary data, Crawled data
+Diagnosis Assistance
+SFT + RLHF
+Chinese
+Biomistral(Labrak et al., 2024)
+Medical QA
+Diagnosis Assistance
+SFT
+English
+Meditron (Chen et al., 2024)
+PubMed articles
+Diagnosis Assistance
+SFT
+English
+
+Diagnosis Assistance,
+Test Results Analysis,
+Clinical Test Ordering
+
+PPO
+English
+
+Table 1: Comparison of Data Sources, Function, Training Method, and Language across Popular Medical Conversa-
+tional Models.
+
+line. Then, we translate the heterogeneous dia-
+logue into clinically-grounded text by designing
+a Clinical Test Reference (CTR) strategy. The
+CTR facilitates (1) the translation of standardized
+clinical codes (such as ICD-9/10, LOINC) into
+clinically-grounded text; and (2) the interpretation
+of clinical test results, conditioned on the patient’s
+age and gender.
+
+On top of transformed EHR data, DiaLLM mod-
+els evidence acquisition and automated diagnosis
+with a reinforcement learning framework. A policy
+network selects clinical tests (i.e., take actions) or
+terminates the process to make a diagnosis. Upon
+termination, a supervised classification model is
+invoked for disease diagnosis. To handle the large
+action space of clinical tests, we introduce a novel
+rejection sampling strategy (Bardenet et al., 2014;
+Fan et al., 2023; Mandel et al., 2016) that pre-filters
+redundant or unnecessary tests, ensuring only clin-
+ically relevant ones are selected. Meanwhile, since
+patients can have multiple diagnoses and disease
+distributions exhibit a long-tail pattern across popu-
+lations, we propose a new confirmation reward and
+a class-sensitive classification reward to enhance
+diagnosis prediction.
+
+Evaluation. We propose a comprehensive eval-
+uation framework for medical LLMs, assessing
+both single-turn and multi-turn consultations. Ex-
+perimental results show that DiaLLM outperforms
+both general-purpose and medical-specific LLMs
+in clinical test selection and diagnosis prediction.
+Our ablation study reveals that integrating the EHR-
+grounded transformation pipeline and specialized
+reward modeling significantly improves clinical
+test comprehensiveness, result interpretation, and
+early diagnosis accuracy.
+
+2
+Related Works
+
+Representation Learning for EHR data. The ma-
+jority of existing studies enhance medical code rep-
+
+25623

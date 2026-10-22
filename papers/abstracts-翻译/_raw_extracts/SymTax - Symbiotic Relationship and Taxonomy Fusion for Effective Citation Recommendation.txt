@@ -1,0 +1,266 @@
+Karan Goyal
+IIIT Delhi, India
+
+Mayank Goel
+NSUT Delhi, India
+
+karang@iiitd.ac.in
+
+mayank.co19@nsut.ac.in
+
+Abstract
+
+Citing pertinent literature is pivotal to writing
+and reviewing a scientific document. Existing
+techniques mainly focus on the local context or
+the global context for recommending citations
+but fail to consider the actual human citation be-
+haviour. We propose SymTax, a three-stage rec-
+ommendation architecture that considers both
+the local and the global context, and addition-
+ally the taxonomical representations of query-
+candidate tuples and the Symbiosis prevailing
+amongst them. SymTax learns to embed the in-
+fused taxonomies in the hyperbolic space and
+uses hyperbolic separation as a latent feature to
+compute query-candidate similarity. We build
+a novel and large dataset ArSyTa containing
+8.27 million citation contexts and describe the
+creation process in detail. We conduct exten-
+sive experiments and ablation studies to demon-
+strate the effectiveness and design choice of
+each module in our framework. Also, com-
+binatorial analysis from our experiments shed
+light on the choice of language models (LMs)
+and fusion embedding, and the inclusion of sec-
+tion heading as a signal. Our proposed module
+that captures the symbiotic relationship solely
+leads to performance gains of 26.66% and
+39.25% in Recall@5 w.r.t. SOTA on ACL-200
+and RefSeer datasets, respectively. The com-
+plete framework yields a gain of 22.56%
+in Recall@5 wrt SOTA on our proposed
+dataset. The code and dataset are available
+at https://github.com/goyalkaraniit/SymTax.
+
+1
+Introduction
+
+Citing has always been the backbone of scientific
+research. It enables trust and supports the claims
+made in the scientific document. The ever-growing
+increase in the amount of scientific literature makes
+it imperative to ease out the author’s task of finding
+a list of suitable papers to follow and cite (Johnson
+et al., 2018; Bornmann et al., 2021; Nane et al.,
+2023). Citation recommendation is such a process
+that helps researchers to be aware of the relevant
+
+SymTax: Symbiotic Relationship and Taxonomy Fusion for
+
+Effective Citation Recommendation
+
+Vikram Goyal
+IIIT Delhi, India
+
+Mukesh Mohania
+
+IIIT Delhi, India
+
+vikram@iiitd.ac.in
+
+mukesh@iiitd.ac.in
+
+C1
+
+C1
+
+. . .
+. . .
+
+Cm
+
+Prefetcher
+Enricher
+Reranker
+
+. . .
+
+Cm+1
+
+Cm
+
+Cn
+
+Recommendation
+
+Input
+
+Query
+Citation Network
+
+Top-K Articles
+
+Figure 1: Proposed method consists of three essential
+modules. Prefetcher and Reranker takes query consist-
+ing of citation context, title, abstract and taxonomy of
+the citing paper as input. For each candidate paper (Ci),
+Enricher uses knowledge from citation network and
+Reranker generates the final top-K recommendations.
+
+research in respective domains. There are two dif-
+ferent approaches to recommend citations: local
+(Dai et al., 2019; Ebesu and Fang, 2017; Huang
+et al., 2012; He et al., 2010), and global (Xie et al.,
+2021; Ali et al., 2021; Bhagavatula et al., 2018;
+Guo et al., 2017). Local citation recommendation
+is the task of finding and recommending the most
+relevant prior work, mainly corresponding to a spe-
+cific text passage (also known as citation context),
+making it context-aware. On the other hand, global
+citation recommendation recommends a list of suit-
+able prior art for the entire document, mainly given
+the title and abstract or the whole document. In this
+paper, we solve the task of local citation recommen-
+dation, which is more fine-grained and provides a
+solution to the actual challenge the author faces.
+For example, consider the below citation excerpt:1
+
+This can have extreme consequences in real-life
+scenarios such as autonomous cars CitX.
+
+Examining the above context in isolation makes
+it challenging to predict the specific article cited
+
+1Excerpt is borrowed from Towards Consistency in Ad-
+versarial Classification of (Meunier et al., 2022). The cited
+article is An analysis of adversarial attacks and defenses on
+autonomous driving models of (Deng et al., 2020).
+
+8997
+
+Findings of the Association for Computational Linguistics: ACL 2024, pages 8997–9008
+
+August 11-16, 2024 ©2024 Association for Computational Linguistics
+
+
+at CitX. However, leveraging global information
+such as title, abstract, and taxonomy narrows down
+the search space while at the same time utilizing
+symbiotic relationship provides the model with an
+enriched pool of the most suitable candidates. Un-
+like ACL-200 and RefSeer datasets with curated
+contexts of fixed size, we curate richer contexts by
+incorporating complete information of adjoining
+sentences with respect to the citation sentence. To
+summarise, we make the following contributions:
+
+• Dataset:
+We have constructed a dataset
+ArSyTa comprising 8.27 million comprehen-
+sive citation contexts across diverse domains,
+featuring richer density and relevant features,
+including taxonomy concepts, to facilitate the
+task of citation recommendation.
+
+• Conceptual: We explore the concept of Sym-
+biosis from Biology and draw its analogy with
+human citation behaviour in the scientific re-
+search ecosystem and select a better pool of
+candidates.
+
+• Methodological: We propose a novel taxon-
+omy fused reranker that subsequently learns
+projections of fused taxonomies in hyperbolic
+space and utilises hyperbolic separation as a
+latent feature.
+
+• Empirical:
+We perform extensive experi-
+ments, ablations, and analysis on five datasets
+and six metrics, demonstrating SymTax con-
+sistently outperforms SOTA by huge margins.
+
+2
+Related Work
+
+Local citation recommendation has drawn compar-
+atively less interest than its global counterpart until
+recently. He et al. (2010) introduced the task of lo-
+cal citation recommendation by using tf-idf based
+vector similarity between context and cited articles.
+Livne et al. (2014) extracted hand-crafted features
+from the citation excerpt and the remaining docu-
+ment text, and developed a system to recommend
+citations while the document is being drafted. The
+neural probabilistic model of (Huang et al., 2015)
+determines the citation probability for a given con-
+text by jointly embedding context and all articles
+in a shared embedding space. Ebesu and Fang
+(2017) proposed neural citation network based on
+encoder-decoder architecture. The encoder obtains
+a robust representation of citation context and fur-
+ther augments it via author networks and attention
+
+mechanism, which the decoder uses to generate the
+title of the cited paper. Dai et al. (2019) utilised
+stacked denoising autoencoders for representing
+cited articles, bidirectional LSTMs for citation con-
+text representation and attention principle over cita-
+tion context to enhance the learning ability of their
+framework.
+
+Jeong et al. (2020) proposed a BERT-GCN
+model which uses BERT (Kenton and Toutanova,
+2019) to obtain embeddings for context sentences,
+and Graph Convolutional Network (Kipf and
+Welling, 2017) to derive embeddings from citation
+
+graph nodes. The two embeddings are then con-
+catenated and passed through a feedforward neural
+network to obtain relevance between them. How-
+ever, due to the high cost of computing GCN, as
+mentioned in Gu et al. (2022), BERT-GCN model
+was evaluated on tiny datasets containing merely
+a few thousand citation contexts. It highlights the
+limitation of scaling such GNN models for recom-
+mending citations on large datasets.
+
+Medi´c and Šnajder (2020) suggested the use of
+global information of articles along with citation
+context to recommend citations. It computes se-
+mantic matching score between citation context
+and cited article text, and bibliographic score from
+the article’s popularity in the community to gen-
+erate a final recommendation score. Ostendorff
+et al. (2022) perform neighbourhood contrastive
+learning over the full citation graph to yield cita-
+tion embeddings and then uses k-nearest neighbour-
+hood based indexing to retrieve the top recommen-
+dations. The most recent work in local citation
+recommendation by Gu et al. (2022) proposed a
+two-stage recommendation architecture compris-
+ing a fast prefetching module and a slow reranking
+module. We build upon work of Gu et al. (2022) by
+borrowing their prefetching module and designing
+a novel reranking module and another novel mod-
+ule named Enricher that fits between Prefetcher
+and Reranker.
+We name our model as SymTax
+(Symbiotic Relationship and Taxonomy Fusion).
+
+3
+Proposed Dataset
+
+Motivation.
+Citation
+recommendation
+algo-
+rithms depend on the availability of the labelled
+data for training. However, curating such a dataset
+is challenging as full pdf papers must be parsed
+to extract citation excerpts and map the respective
+cited articles. Further, the constraint that cited
+articles should be present in the corpus eliminates
+
+8998

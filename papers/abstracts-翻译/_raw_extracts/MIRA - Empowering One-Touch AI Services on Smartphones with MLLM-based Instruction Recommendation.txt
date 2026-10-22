@@ -1,0 +1,265 @@
+Zhenhua Dong2
+
+Abstract
+
+The rapid advancement of generative AI tech-
+nologies is driving the integration of diverse AI-
+powered services into smartphones, transform-
+ing how users interact with their devices. To
+simplify access to predefined AI services, this
+paper introduces MIRA, a pioneering frame-
+work for task instruction recommendation that
+enables intuitive one-touch AI tasking on smart-
+phones. With MIRA, users can long-press on
+images or text objects to receive contextually
+relevant instruction recommendations for ex-
+ecuting AI tasks. Our work introduces three
+key innovations: 1) A multimodal large lan-
+guage model (MLLM)-based recommendation
+pipeline with structured reasoning to extract
+key entities, infer user intent, and generate pre-
+cise instructions; 2) A template-augmented rea-
+soning mechanism that integrates high-level
+reasoning templates, enhancing task inference
+accuracy; 3) A prefix-tree-based constrained
+decoding strategy that restricts outputs to prede-
+fined instruction candidates, ensuring coherent
+and intent-aligned suggestions. Through eval-
+uation using a real-world annotated datasets
+and a user study, MIRA has demonstrated sub-
+stantial improvements in the accuracy of in-
+struction recommendation. The encouraging
+results highlight MIRA’s potential to revolu-
+tionize the way users engage with AI services
+on their smartphones, offering a more seamless
+and efficient experience.
+
+1
+Introduction
+
+Generative AI technologies, such as large language
+models (LLMs) (Naveed et al., 2023), diffusion
+models (Yang et al., 2024b), and AI agents (Xi
+et al., 2023), are revolutionizing the capabilities of
+AI smartphones (Marr, 2024a,b), ushering in a new
+era of intelligent mobile devices that offer unparal-
+leled levels of personalization and interaction. The
+integration of LLMs powers sophisticated virtual
+
+* Corresponding Author.
+
+MIRA: Empowering One-Touch AI Services on Smartphones with
+
+MLLM-based Instruction Recommendation
+
+Zhipeng Bian1,2, Jieming Zhu2*, Xuyang Xie2, Quanyu Dai2, Zhou Zhao3,
+
+1Shenzhen University, Shenzhen, China
+2Huawei Noah’s Ark Lab, Shenzhen, China
+3Zhejiang University, Hangzhou, China
+bianzhipeng2022@email.szu.edu.cn
+jiemingzhu@ieee.org
+{xiexuyang,daiquanyu,dongzhenhua}@huawei.com
+zhaozhou@zju.edu.cn
+
+Screenshot Image
+
+MIRA
+
+Booking Trains
+
+Creating Memos
+
+Navigating
+
+Scheduling
+
+Instruction Name
+Instruction Description
+
+
+The train booking details including departure time (06:37), arrival 
+time (12:39), departure station (Shanghai Hongqiao), and arrival 
+station (Beijing South) are significant.
+
+The user likely requires remembering these details for the purpose 
+of travel planning.
+
+Creating Memos
+
+
+The departure station (Shanghai Hongqiao) is mentioned. 
+
+The user may need to find the best way to reach the station, 
+especially if the user is unfamiliar with the location.
+
+Navigating
+
+                      
+Scheduling
+
+
+The specific departure and arrival times along with the travel date 
+(Aug 30) are crucial for scheduling. 
+
+The user might plan other activities around the departure time. 
+
+ 
+Booking Trains
+
+
+A train booking interface with departure and arrival time options, 
+train type filters, and price details appears in the image.
+
+The user may need to book a train ticket for their travel.
+
+Figure 1: An illustration of one-touch AI services on
+smartphones.
+
+assistants capable of engaging in more natural, con-
+textually rich conversations, delivering detailed and
+relevant information to meet specific user needs.
+These advancements also enable smartphones to
+generate high-quality images, videos, text, and
+music on demand, providing users with unprece-
+dented creative freedom. Furthermore, it empow-
+ers a wide range of AI services, including real-time
+language translation, advanced image captioning,
+visual question answering, customized text sum-
+maries, and personalized recommendations, setting
+a new standard for smartphone functionality. As
+generative AI continues to evolve, it promises seam-
+less integration into various aspects of smartphone
+use, transforming mobile devices into intelligent
+AI agents that adeptly serve daily needs.
+
+Given the rich AI capabilities on smartphones,
+there is significant potential for seamless and ef-
+fortless AI services. Currently, most smartphones
+rely on conversational AI assistants (e.g., Siri) to
+process user requests via text or voice commands.
+While effective for interaction, this approach has
+
+1457
+
+Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 6: Industry Track), pages 1457–1465
+
+July 28-30, 2025 ©2025 Association for Computational Linguistics
+
+
+limitations in handling routine daily tasks. Users
+often need detailed, multi-step instructions to com-
+plete AI tasks. For example, processing a screen-
+shot of a train booking involves several steps: per-
+forming text recognition (i.e., OCR), extracting
+structured information, adding the event to a cal-
+endar, and setting up a reminder. This process is
+time-consuming and cumbersome. Additionally,
+repeatedly executing these instructions for daily
+repetitive tasks wastes valuable time and effort.
+
+To address these challenges and promote seam-
+less access to AI services, we propose MIRA, a
+Multimodal Instruction Recommendation Agent
+that enables one-touch AI task execution on smart-
+phones. Users can long-press target objects such
+as images, messages, or documents, triggering pre-
+defined, contextually relevant task instruction rec-
+ommendations for accessing AI services. For ex-
+ample, as shown in Figure 1, when handling a
+screenshot of a train booking, a user can simply
+long-press the image to instantly receive recom-
+mendations for actions like booking trains, creating
+memos, scheduling calendar events, and navigat-
+ing to station. In this paper, we define AI task in-
+structions as detailed prompts and execution steps
+to operate on trigger objects and complete a spe-
+cific task. For instance, a navigation task might
+involve recognizing a specific location from an im-
+age and subsequently invoking a map navigation
+API to guide the user. By encapsulating complex
+processes into single, intuitive actions, MIRA al-
+lows users to quickly and effortlessly access AI
+services, simplifying task completion and maxi-
+mizing convenience.
+
+This represents an emerging application scenario
+in the new era of AI smartphones. To our knowl-
+edge, it is the first effort to address instruction
+recommendations for AI services on smartphones.
+With the rise of generative AI, functionalities such
+
+as translation, summarization, navigation, event
+scheduling, calling, memo creation, image editing,
+image description, calorie calculation, and cooking
+inquiries are now available. Each service typically
+involves a complex pipeline of prompts, fine-tuned
+models (e.g., LoRAs), and API calls. These ser-
+vices can be added by smartphone providers or
+registered by third-party partners. MIRA’s main
+goal is to provide contextually relevant recommen-
+dations from a wide range of AI services when
+users long-press a specific image or text object (i.e.,
+triggers). While supporting various trigger types is
+ideal, we focus on text and image triggers in this
+
+initial effort.
+
+Unlike traditional recommender systems that fo-
+cus on user behavior sequences, our instruction
+recommendation task emphasizes on multimodal
+trigger inputs. The challenge lies in understand-
+ing the content of these triggers and extracting key
+information to infer user intent and generate pre-
+cise instructions. For example, given an image
+of a bank card, the system should recognize tasks
+like transferring funds or creating memos related
+to banking.
+
+This paper introduces MIRA, a multimodal large
+language model (MLLM)-based recommendation
+agent for understanding user context and recom-
+mending task instructions. While MLLMs excel
+in image recognition and text understanding (Liu
+et al., 2024b),aligning trigger content with rele-
+vant instructions is challenging. We make three
+key contributions: 1) Introducing structured reason-
+ing to extract entities, infer user intent, and gener-
+ate precise instructions; 2) Developing a template-
+augmented reasoning mechanism to improve task
+inference accuracy; 3) Implementing prefix-tree-
+based constrained decoding to ensure coherence
+and intent alignment. We evaluate MIRA using
+real-world datasets and a user study, showing sig-
+nificant improvements in instruction recommenda-
+tion accuracy.
+
+2
+Related Work
+
+2.1
+Multimodal Large Language Model
+Reasoning
+
+Recent advances in MLLM have highlighted their
+impressive visual reasoning capabilities.
+Stud-
+ies have explored plan-based Chain-of-Thought
+(CoT) prompting (Shao et al., 2024; Mitra et al.,
+2024), which guides models through interme-
+diate reasoning steps for more accurate results.
+LLaVA-CoT (Xu et al., 2024) introduces a Vision-
+Language Model (VLM) designed for structured
+reasoning, achieving notable success in visual tasks.
+Building on this, LlamaV-o1 (Thawakar et al.,
+2025) uses multi-stage curriculum learning to pro-
+gressively improve problem-solving skills. CoM-
+CTS (Yao et al., 2024) combines collective learning
+with tree search to optimize reasoning pathways.
+However, these methods either require lengthy tree
+search algorithms or rely on process reward models
+to guide reasoning, making them inefficient. As a
+result, an efficient and effective approach for com-
+plex reasoning tasks in MLLMs is still lacking.
+
+1458

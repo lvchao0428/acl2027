@@ -1,0 +1,10 @@
+# A Semi-supervised Scalable Unified Framework for E-commerce Query Classification
+> 来源文件：A Semi-supervised Scalable Unified Framework for E-commerce Query Classification.pdf
+
+## 英文原文摘要（Original Abstract）
+
+Query classification, including multiple sub-tasks such as intent and category prediction, is vital to e-commerce applications. E-commerce queries are usually short and lack context, and the information between labels cannot be used, resulting in insufficient prior information for modeling. Most existing industrial query classification methods rely on users' posterior click behavior to construct training samples, resulting in a Matthew vicious cycle. Furthermore, the subtasks of query classification lack a unified framework, leading to low efficiency for algorithm optimization. In this paper, we propose a novel Semi-supervised Scalable Unified Framework (SSUF), containing multiple enhanced modules to unify the query classification tasks. The knowledge-enhanced module uses world knowledge to enhance query representations and solve the problem of insufficient query information. The label-enhanced module uses label semantics and semi-supervised signals to reduce the dependence on posterior labels. The structure-enhanced module enhances the label representation based on the complex label relations. Each module is highly pluggable, and input features can be added or removed as needed according to each subtask. We conduct extensive offline and online A/B experiments, and the results show that SSUF significantly outperforms the state-of-the-art models.
+
+## 中文翻译（Chinese Translation）
+
+查询分类（query classification）包含意图预测、类目预测等多个子任务，对电商应用至关重要。电商查询通常很短、缺乏上下文，且标签之间的信息无法被利用，导致建模时先验信息不足。现有工业界查询分类方法大多依赖用户的后验点击行为来构造训练样本，从而形成马太效应式的恶性循环。此外，查询分类的各子任务缺乏统一框架，导致算法优化效率低下。本文提出一种新颖的半监督可扩展统一框架 SSUF（Semi-supervised Scalable Unified Framework），通过多个增强模块来统一各类查询分类任务。其中，知识增强模块利用世界知识增强查询表示，解决查询信息不足的问题；标签增强模块利用标签语义和半监督信号，降低对后验标签的依赖；结构增强模块基于复杂的标签关系增强标签表示。各模块高度可插拔，可根据各子任务的需要灵活增删输入特征。我们进行了大量离线和在线 A/B 实验，结果表明 SSUF 显著优于当前最优模型。
