@@ -1,6 +1,8 @@
 # From ID to LLM: Rethinking Representation Learning
 
 > 来源文件：11_PtE.pdf
+> 发表年份：2026
+> 单位：Huawei Noah's Ark Lab；Tsinghua University
 
 ## 英文原文摘要（Original Abstract）
 

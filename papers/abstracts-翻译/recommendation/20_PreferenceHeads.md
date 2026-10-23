@@ -1,6 +1,8 @@
 # Preference Heads in Large Language Models: A Mechanistic Framework
 
 > 来源文件：20_PreferenceHeads.pdf
+> 发表年份：2026
+> 单位：McGill University and Mila - Quebec Artificial Intelligence Institute；McGill University, McGill University and Mila - Quebec Artificial Intelligence Institute；Université de Montréal；SalesForce.com；Mohamed bin Zayed University of Artificial Intelligence and McGill University
 
 ## 英文原文摘要（Original Abstract）
 

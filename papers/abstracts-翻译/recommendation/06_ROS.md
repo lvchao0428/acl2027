@@ -1,6 +1,8 @@
 # Reasoning Over Space: Enabling Geographic Reasoning for LLM-Based
 
 > 来源文件：06_ROS.pdf
+> 发表年份：2026
+> 单位：Alibaba Group
 
 ## 英文原文摘要（Original Abstract）
 

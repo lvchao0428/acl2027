@@ -1,6 +1,8 @@
 # Optimizing User Profiles via Contextual Bandits for Retrieval-Augmented
 
 > 来源文件：10_PURPLE.pdf
+> 发表年份：2026
+> 单位：McGill University, McGill University and Mila - Quebec Artificial Intelligence Institute；Vatic Labs；Mohamed bin Zayed University of Artificial Intelligence；SalesForce.com；HEC Montreal and Mila - Quebec Artificial Intelligence Institute；Mohamed bin Zayed University of Artificial Intelligence and McGill University
 
 ## 英文原文摘要（Original Abstract）
 

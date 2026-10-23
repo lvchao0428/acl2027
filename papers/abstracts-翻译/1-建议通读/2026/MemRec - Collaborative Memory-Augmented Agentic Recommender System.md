@@ -1,0 +1,12 @@
+# MemRec: Collaborative Memory-Augmented Agentic Recommender System
+> 来源文件：MemRec - Collaborative Memory-Augmented Agentic Recommender System.pdf
+> 发表年份：2026
+> 单位：Hong Kong Baptist University；Rutgers University；Snap Inc.
+
+## 英文原文摘要（Original Abstract）
+
+The evolution of recommender systems has shifted from traditional collaborative filtering to LLM-based agentic systems, which rely on semantic user and item memories to make predictions. However, existing agents maintain these memories in isolation. This overlooks crucial collaborative signals, such as user-item co-engagements and peer relationships across the community, which significantly limits their ability to uncover hidden preferences and accurately infer user needs, particularly for datasparse users. To bridge this gap, we introduce collaborative memory, a paradigm that connects isolated semantics to enable the sharing of relational insights. Yet, naively utilizing collaborative memory causes severe context overload and introduces noise to downstream LLMs, alongside prohibitive computational costs. To resolve this, we propose MemRec, a framework that architecturally decouples memory management from reasoning. MemRec introduces a dedicated, lightweight language model (LMMem) to efficiently manage and synthesize a dynamic collaborative memory graph in the background. It provides only distilled, high-signal contexts to a downstream, heavyweight large language model (LLMRec) for the final recommendation. Extensive experiments on four benchmarks demonstrate that MemRec achieves state-of-the-art performance.
+
+## 中文翻译（Chinese Translation）
+
+推荐系统的演进已从传统协同过滤转向基于 LLM 的智能体系统，后者依赖语义化的用户与商品记忆来做预测。然而，现有智能体是孤立地维护这些记忆，忽视了关键的协同信号——例如用户-商品的共同参与（co-engagement）以及整个社区中的同伴关系——这显著限制了它们发现隐藏偏好、准确推断用户需求的能力，对数据稀疏的用户尤为明显。为弥合这一缺口，我们引入"协同记忆（collaborative memory）"这一范式，将孤立的语义连接起来，实现关系洞见的共享。然而，朴素地使用协同记忆会导致严重的上下文过载，给下游 LLM 引入噪声，并带来高昂的计算成本。为此，我们提出 MemRec，一个在架构上将记忆管理与推理解耦的框架。MemRec 引入一个专用的轻量语言模型（LMMem），在后台高效管理并综合一张动态协同记忆图；它仅把经过蒸馏、高信号的上下文提供给下游的重量级大语言模型（LLMRec）做最终推荐。在四个基准上的大量实验表明，MemRec 取得了最先进性能。代码：https://github.com/rutgerswiselab/memrec；主页：https://memrec.weixinchen.com。

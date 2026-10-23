@@ -1,0 +1,8 @@
+# Personalizing LLMs with Binary Feedback: A Preference-Corrected Optimization Framework
+> 来源文件：Personalizing LLMs with Binary Feedback - A Preference-Calibrated Optimization Framework.pdf
+> 发表年份：2026
+> 单位：Nanyang Technological University；Harbin Institute of Technology
+## 英文原文摘要（Original Abstract）
+Large Language Model (LLM) personalization aims to align model behaviors with individual user preferences. Existing methods often focus on isolated user histories, neglecting the essential role of inter-user differences. We propose C-BPO, a framework that personalizes LLMs via preference-calibrated binary signals. By treating target user data as positive feedback and other users' data as an auxiliary set of implicit negative signals, C-BPO captures distinct inter-user differences. To mitigate the preference overlap issue, where shared task knowledge is erroneously penalized, we derive an objective grounded in Positive-Unlabeled (PU) learning theory. This approach purifies negative signals by subtracting "positive bias", ensuring alignment with unique idiosyncrasies without compromising general helpfulness. Empirical experiments across various personalization tasks and backbone LLMs show C-BPO consistently outperforms baselines, demonstrating the efficacy of preference-calibrated binary signals in modeling inter-user differences.
+## 中文翻译（Chinese Translation）
+大语言模型（LLM）个性化旨在使模型行为与个体用户偏好保持一致。现有方法往往聚焦于孤立的用户历史，忽视了用户间差异所起的关键作用。本文提出 C-BPO，一个通过偏好校准的二值信号来实现 LLM 个性化的框架。C-BPO 将目标用户数据视为正反馈、将其他用户数据视为一组隐式负反馈辅助集，从而捕捉显著的用户间差异。为缓解"偏好重叠"问题（即共享任务知识被错误惩罚的现象），我们基于正例-未标注学习（Positive-Unlabeled, PU）理论推导了一个优化目标。该方法通过减去"正偏差"来纯化负信号，确保模型在对齐用户独特癖好的同时不损失通用的帮助能力。在多种个性化任务和不同骨干 LLM 上的实验表明，C-BPO 持续优于基线，验证了偏好校准的二值信号在建模用户间差异方面的有效性。

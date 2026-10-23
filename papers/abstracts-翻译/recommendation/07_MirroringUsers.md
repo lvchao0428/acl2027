@@ -1,6 +1,8 @@
 # Mirroring Users: Towards Building Preference-aligned User Simulator
 
 > 来源文件：07_MirroringUsers.pdf
+> 发表年份：2026
+> 单位：Nanyang Technological University；Singapore University of Technology and Design；Zhejiang University
 
 ## 英文原文摘要（Original Abstract）
 

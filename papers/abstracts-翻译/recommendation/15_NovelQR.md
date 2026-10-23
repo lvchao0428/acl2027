@@ -1,6 +1,8 @@
 # What Makes an Ideal Quote? Recommending “Unexpected yet Rational” Quotations via Novelty
 
 > 来源文件：15_NovelQR.pdf
+> 发表年份：2026
+> 单位：Fudan University
 
 ## 英文原文摘要（Original Abstract）
 

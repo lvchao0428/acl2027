@@ -1,0 +1,10 @@
+# Reasoning Over Space: Enabling Geographic Reasoning for LLM-Based Generative Next POI Recommendation
+> 来源文件：Reasoning Over Space - Enabling Geographic Reasoning for LLM-Based Generative Next POI Recommendation.pdf
+> 发表年份：2026
+> 单位：Alibaba Group
+
+## 英文原文摘要（Original Abstract）
+Generative recommendation with large language models (LLMs) reframes prediction as sequence generation, yet existing LLM-based recommenders remain limited in leveraging geographic signals that are crucial in mobility and local-services scenarios. Here, we present REASONING OVER SPACE (ROS), a framework that utilizes geography as a vital decision variable within the reasoning process. ROS introduces a Hierarchical Spatial Semantic ID (SID) that discretizes coarse-to-fine locality and POI semantics into compositional tokens, and endows LLM with a three-stage Mobility Chain-of-Thought (CoT) paradigm that models user personality, constructs an intent-aligned candidate space, and performs locality informed pruning. We further align the model with real world geography via spatial-guided Reinforcement Learning (RL). Experiments on three widely used location-based social network (LBSN) datasets show that ROS achieves over 10% relative gains in hit rate over strongest LLM-based baselines and improves cross-city transfer, despite using a smaller backbone model.
+
+## 中文翻译（Chinese Translation）
+基于大语言模型（LLM）的生成式推荐将预测重新构建为序列生成任务，但现有的基于 LLM 的推荐器在利用地理信号方面仍存在局限，而地理信号在出行与本地服务场景中至关重要。为此，本文提出 REASONING OVER SPACE（ROS）框架，将地理作为推理过程中的关键决策变量。ROS 引入分层空间语义 ID（Hierarchical Spatial Semantic ID, SID），将由粗到细的地理位置与 POI 语义离散化为可组合的 token；并赋予 LLM 三阶段的移动性思维链（Mobility Chain-of-Thought, CoT）范式，依次建模用户个性、构建与意图对齐的候选空间，并执行基于地理位置信息的剪枝。我们进一步通过空间引导的强化学习（Reinforcement Learning, RL）将模型与真实世界地理对齐。在三个广泛使用的基于位置的社交网络（LBSN）数据集上的实验表明，ROS 即使使用更小的骨干模型，相对最强的基于 LLM 的基线在命中率上仍取得超过 10% 的相对提升，并改善了跨城市迁移能力。

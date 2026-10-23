@@ -1,6 +1,8 @@
 # From Past To Path: Masked History Learning for Next-Item Prediction in Generative Recommendation
 
 > 来源文件：12_MHL.pdf
+> 发表年份：2026
+> 单位：Institute of automation, Chinese academy of science；Hong Kong University of Science and Technology；Chongqing University；Institute of automation, Chinese academy of science, Chinese Academy of Sciences
 
 ## 英文原文摘要（Original Abstract）
 

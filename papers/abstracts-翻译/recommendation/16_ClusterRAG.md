@@ -1,6 +1,8 @@
 # ClusterRAG: Cluster-Based Collaborative Filtering for Personalized
 
 > 来源文件：16_ClusterRAG.pdf
+> 发表年份：2026
+> 单位：University of Arkansas - Fayetteville；Walmart Inc.
 
 ## 英文原文摘要（Original Abstract）
 

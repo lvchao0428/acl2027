@@ -1,0 +1,9 @@
+# PersonaLens - A Benchmark for Personalization Evaluation in Conversational AI Assistants
+> 来源文件：PersonaLens - A Benchmark for Personalization Evaluation in Conversational AI Assistants.pdf
+> 发表年份：2025
+> 单位：University of Edinburgh, University of Edinburgh；Amazon；University of Edinburgh
+## 英文原文摘要（Original Abstract）
+Large language models (LLMs) have advanced conversational AI assistants. However, sys- tematically evaluating how well these assis- tants apply personalization—adapting to in- dividual user preferences while completing tasks—remains challenging. Existing person- alization benchmarks focus on chit-chat, non- conversational tasks, or narrow domains, fail- ing to capture the complexities of personal- ized task-oriented assistance. To address this, we introduce PersonaLens, a comprehensive benchmark for evaluating personalization in task-oriented AI assistants. Our benchmark features diverse user proﬁles equipped with rich preferences and interaction histories, along with two specialized LLM-based agents: a user agent that engages in realistic task-oriented dia- logues with AI assistants, and a judge agent that employs the LLM-as-a-Judge paradigm to as- sess personalization, response quality, and task success. Through extensive experiments with current LLM assistants across diverse tasks, we reveal signiﬁcant variability in their personal- ization capabilities, providing crucial insights for advancing conversational AI systems.
+
+## 中文翻译（Chinese Translation）
+大语言模型（LLM）推动了对话式 AI 助手的发展。然而，系统地评估这些助手在完成任务时如何根据个体用户偏好进行个性化——即适配用户偏好——仍然充满挑战。现有的个性化基准主要聚焦于闲聊、非对话式任务或狭窄领域，未能捕捉个性化任务导向辅助的复杂性。为解决这一问题，本文提出了 PersonaLens，这是一个用于评估任务导向 AI 助手中个性化能力的综合基准。该基准配备了具有丰富偏好和交互历史的多样化用户画像，以及两个专门的基于 LLM 的智能体：一个用户智能体，负责与 AI 助手进行真实的任务导向对话；一个评判智能体，采用 LLM-as-a-Judge 范式评估个性化程度、回复质量和任务完成情况。通过在多样任务上对当前 LLM 助手进行的大量实验，我们揭示了它们在个性化能力上的显著差异，为推进对话式 AI 系统提供了关键洞见。

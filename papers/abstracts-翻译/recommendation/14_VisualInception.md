@@ -1,6 +1,8 @@
 # Visual Inception: Compromising Long-term Planning in Agentic
 
 > 来源文件：14_VisualInception.pdf
+> 发表年份：2026
+> 单位：Anthology 未著录
 
 ## 英文原文摘要（Original Abstract）
 

@@ -1,6 +1,8 @@
 # ShopSimulator: Evaluating and Exploring RL-Driven LLM Agent for
 
 > 来源文件：17_ShopSimulator.pdf
+> 发表年份：2026
+> 单位：Beijing University of Posts and Telecommunications；Alibaba Group
 
 ## 英文原文摘要（Original Abstract）
 

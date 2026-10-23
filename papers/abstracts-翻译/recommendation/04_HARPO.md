@@ -1,6 +1,8 @@
 # HARPO: Hierarchical Agentic Reasoning for User-Aligned Conversational
 
 > 来源文件：04_HARPO.pdf
+> 发表年份：2026
+> 单位：Indian Institute of Technology, Patna
 
 ## 英文原文摘要（Original Abstract）
 

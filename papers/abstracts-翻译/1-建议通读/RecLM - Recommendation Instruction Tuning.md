@@ -1,8 +1,0 @@
-# RecLM: Recommendation Instruction Tuning
-> 来源文件：RecLM - Recommendation Instruction Tuning.pdf
-
-## 英文原文摘要（Original Abstract）
-Modern recommender systems aim to deeply understand users' complex preferences through their past interactions. While deep collaborative filtering approaches using Graph Neural Networks (GNNs) excel at capturing user-item relationships, their effectiveness is limited when handling sparse data or zero-shot scenarios, primarily due to constraints in ID-based embedding functions. To address these challenges, we propose a model-agnostic recommendation instruction-tuning paradigm that seamlessly integrates large language models with collaborative filtering. Our proposed Recommendation Language Model (RecLM) enhances the capture of user preference diversity through a carefully designed reinforcement learning reward function that facilitates self-augmentation of language models. Comprehensive evaluations demonstrate significant advantages of our approach across various settings, and its plug-and-play compatibility with state-of-the-art recommender systems results in notable performance enhancements. We have made our RecLM available anonymously at: https://github.com/HKUDS/RecLM.
-
-## 中文翻译（Chinese Translation）
-现代推荐系统旨在通过用户历史交互深入理解其复杂偏好。虽然基于图神经网络（GNN）的深度协同过滤方法在捕捉用户-物品关系方面表现出色，但在处理稀疏数据或零样本场景时效果受限，这主要源于基于 ID 的嵌入函数的固有约束。为应对这些挑战，本文提出一种模型无关（model-agnostic）的推荐指令微调范式，将大语言模型与协同过滤无缝融合。我们提出的推荐语言模型 RecLM 通过精心设计的强化学习奖励函数增强对用户偏好多样性的捕捉，该奖励函数促进语言模型的自增强（self-augmentation）。综合评估表明，我们的方法在多种设定下均具有显著优势，并且其与最先进推荐系统的即插即用（plug-and-play）兼容性带来了显著的性能提升。RecLM 已匿名开源于：https://github.com/HKUDS/RecLM。
