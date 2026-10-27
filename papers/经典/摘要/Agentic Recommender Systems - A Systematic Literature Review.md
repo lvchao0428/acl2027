@@ -1,0 +1,12 @@
+# Agentic Recommender Systems: A Systematic Literature Review
+> 来源文件：IEEE 页面需订阅，本目录没有 PDF。https://doi.org/10.1109/tse.2026.3657900
+> 发表年份：2026（IEEE Transactions on Software Engineering，2026 年 1 月 27 日）
+> 单位：University of Waterloo
+
+## 英文原文摘要（Original Abstract）
+
+Recommender systems (RSs) are software systems that use machine learning techniques to suggest items, such as movies, products or routes to users based on input provided over time. These systems have been widely used by companies, such as Amazon, Google, and Netflix, who rely heavily on recommendations as a core element of their interaction with users. In the case of software engineering, RSs are used to recommend, for example, software tasks, developers, APIs, libraries, and bug fixes. More recently, advancements in natural language processing and large language models (LLMs) have led to the creation of LLM agents capable of generating plans, interacting with users and the environment, receiving feedback, and using tools. These developments have resulted in the use of LLM agents in RSs, giving rise to multi-agent RSs referred to as agentic recommender systems (ARSs). However, agentic RSs are not yet well characterized in terms of the basic elements of system modeling and design. This systematic literature review characterizes agentic recommender systems with respect to agents, roles, relationships, prompts, integration, use cases, strategies and evaluation methods. An analysis of published studies yields insights, such as (i) the identification of 13 distinct types of agents, (ii) the popularity of GPT models, (iii) a framework for ARSs, (iv) a generalized prompt, (v) the use of persona, cues, output format, and zero-shot prompting, (vi) the frequent use of Amazon, Yelp, and MovieLens datasets, (vii) the use of nDCG@k and Recall@k as common evaluation metrics, and (viii) the identification of many research gaps. This systematic literature review aims to support the continued research and development of agentic recommender systems.
+
+## 中文翻译（Chinese Translation）
+
+推荐系统用机器学习向用户建议电影、商品或路线；在软件工程里，也用来推荐任务、开发者、API、库和缺陷修复。自然语言处理和 LLM 的进展产生了能够做计划、与用户和环境交互、接收反馈并使用工具的 LLM agent，由此出现被称为 agentic recommender systems 的多智能体推荐系统。这类系统在建模和设计的基本元素上还没有被说清楚。这篇系统文献综述从 agent、角色、关系、提示词、集成方式、使用场景、策略和评测方法来刻画它们。从已发表研究里得到的观察包括：有 13 种不同的 agent 类型；GPT 模型最常用；给出了一个 ARS 框架和一种通用提示；常用 persona、线索、输出格式和零样本提示；数据常用 Amazon、Yelp 和 MovieLens；指标常用 nDCG@k 和 Recall@k；并指出许多研究空白。范围比商品推荐更宽，包含软件工程里的推荐。
