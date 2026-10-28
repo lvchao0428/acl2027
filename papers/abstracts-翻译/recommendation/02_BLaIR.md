@@ -1,6 +1,8 @@
 # Bridging Language and Items for Retrieval and Recommendation:
 
 > 来源文件：02_BLaIR.pdf
+> 发表年份：2026
+> 单位：University of California, San Diego；Facebook；University of Pennsylvania, University of Pennsylvania；Google DeepMind；SalesForce；University of Illinois at Urbana-Champaign；University of California, San Diego, University of California, San Diego
 
 ## 英文原文摘要（Original Abstract）
 

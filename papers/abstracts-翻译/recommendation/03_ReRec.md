@@ -1,6 +1,8 @@
 # ReRec: Reasoning-Augmented LLM-based Recommendation Assistant via
 
 > 来源文件：03_ReRec.pdf
+> 发表年份：2026
+> 单位：Hong Kong Polytechinic University；The Hong Kong Polytechnic University
 
 ## 英文原文摘要（Original Abstract）
 

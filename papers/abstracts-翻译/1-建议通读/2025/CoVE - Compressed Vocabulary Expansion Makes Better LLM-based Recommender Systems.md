@@ -1,0 +1,8 @@
+# CoVE：压缩式词表扩展打造更优的 LLM 推荐系统
+> 来源文件：CoVE - Compressed Vocabulary Expansion Makes Better LLM-based Recommender Systems.pdf
+> 发表年份：2025
+> 单位：Rice University and ThirdAI Corp.；UT Health, Rice University, Google and Department of Computer Science, Whiting School of Engineering
+## 英文原文摘要（Original Abstract）
+Recommender systems play a pivotal role in providing relevant content to users. With the rapid development of large language mod-els (LLMs), researchers have begun utilizing LLMs to build more powerful recommender systems. However, existing approaches that fo-cus on aligning LLMs with recommendation tasks do not fully leverage their sequential in-formation processing capabilities, leading to suboptimal performance. In this paper, we propose a novel system called compressed vocabulary expansion (CoVE). In CoVE, each item is assigned a unique ID within the expanded vocabulary. Our frame-work effectively capitalizes on sequence un-derstanding abilities of LLMs, significantly en-hancing their performance on recommendation tasks. Additionally, we compress the embed-ding layer, making CoVE practical for large-scale industrial applications. The effectiveness and performance of CoVE are demonstrated through comprehensive experiments on multi-ple recommendation datasets and comparisons with prior works. Our code can be found at https://github.com/HaochenZhang717/ CoVE-official-Repo.
+## 中文翻译（Chinese Translation）
+推荐系统在为用户提供相关内容方面发挥着关键作用。随着大语言模型（LLM）快速发展，研究者开始用 LLM 构建更强大的推荐系统。然而，现有“将 LLM 与推荐任务对齐”的方法并未充分利用 LLM 的序列信息处理能力，导致性能次优。本文提出一个名为压缩式词表扩展（CoVE）的新系统。在 CoVE 中，每个商品在扩展后的词表中被分配一个唯一 ID。我们的框架有效利用了 LLM 的序列理解能力，显著提升其在推荐任务上的表现。此外，我们对嵌入层进行压缩，使 CoVE 可落地于大规模工业应用。通过在多个推荐数据集上的综合实验及与已有工作的对比，验证了 CoVE 的有效性与性能。

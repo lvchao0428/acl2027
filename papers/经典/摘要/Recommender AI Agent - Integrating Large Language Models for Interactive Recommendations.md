@@ -1,0 +1,13 @@
+# Recommender AI Agent: Integrating Large Language Models for Interactive Recommendations
+> 来源文件：Recommender AI Agent - Integrating Large Language Models for Interactive Recommendations.pdf
+> 发表年份：2025（TOIS；arXiv 2023）
+> 会议：ACM Transactions on Information Systems
+> 单位：University of Science and Technology of China；Microsoft Research Asia
+
+## 英文原文摘要（Original Abstract）
+
+Recommender models excel at providing domain-specific item recommendations by leveraging extensive user behavior data. Despite their ability to act as lightweight domain experts, they struggle to perform versatile tasks such as providing explanations and engaging in conversations. On the other hand, large language models (LLMs) represent a significant step towards artificial general intelligence, showcasing remarkable capabilities in instruction comprehension, commonsense reasoning, and human interaction. However, LLMs lack the knowledge of domain-specific item catalogs and behavioral patterns, particularly in areas that diverge from general world knowledge, such as online e-commerce. Finetuning LLMs for each domain is neither economic nor efficient. In this paper, we bridge the gap between recommender models and LLMs, combining their respective strengths to create a versatile and interactive recommender system. We introduce an efficient framework called InteRecAgent, which employs LLMs as the brain and recommender models as tools. We first outline a minimal set of essential tools required to transform LLMs into InteRecAgent. We then propose an efficient workflow within InteRecAgent for task execution, incorporating key components such as memory components, dynamic demonstration-augmented task planning, and reflection. InteRecAgent enables traditional recommender systems, such as those ID-based matrix factorization models, to become interactive systems with a natural language interface through the integration of LLMs. Experimental results on several public datasets show that InteRecAgent achieves satisfying performance as a conversational recommender system, outperforming general-purpose LLMs. The source code of InteRecAgent is released at https://aka.ms/recagent.
+
+## 中文翻译（Chinese Translation）
+
+推荐模型擅长利用大量用户行为数据，给出领域内的物品推荐。它们可以作为轻量的领域专家，但难以承担解释推荐、参与对话这类更通用的任务。大语言模型在指令理解、常识推理和人际交互上能力很强，却缺少领域物品目录和行为模式的知识，电商这类偏离通用世界知识的场景尤其如此。为每个领域微调大语言模型既不经济，也不高效。本文把推荐模型和 LLM 接在一起，用各自的长处做成一个通用、可交互的推荐系统。框架名为 InteRecAgent：LLM 是大脑，推荐模型是工具。我们先给出把 LLM 变成 InteRecAgent 所需的最小工具集，再给出任务执行流程，其中包括记忆、由动态示例增强的任务规划，以及反思。这样，基于 ID 的矩阵分解等传统推荐系统可以通过 LLM 获得自然语言界面，变成可交互系统。在多个公开数据集上，InteRecAgent 作为对话推荐系统表现令人满意，并超过通用 LLM。代码：https://aka.ms/recagent。

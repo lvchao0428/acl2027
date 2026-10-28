@@ -1,6 +1,8 @@
 # AlignUSER: Human-Aligned LLM Agents via World Models for
 
 > 来源文件：09_AlignUSER.pdf
+> 发表年份：2026
+> 单位：Woven by Toyota
 
 ## 英文原文摘要（Original Abstract）
 

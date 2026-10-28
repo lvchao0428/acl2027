@@ -1,0 +1,10 @@
+# User Feedback Alignment for LLM-powered Exploration in Large-scale Recommendation Systems
+> 来源文件：User Feedback Alignment for LLM-powered Exploration in Large-scale Recommendation Systems.pdf
+> 发表年份：2025
+> 单位：Google DeepMind；Google；Google and Columbia University；NA
+
+## 英文原文摘要（Original Abstract）
+Exploration, the act of broadening user experiences beyond their established preferences, is challenging in large-scale recommendation systems due to feedback loops and limited signals on user exploration patterns. Large Language Models (LLMs) offer potential solutions by leveraging their world knowledge to recommend novel content outside these loops. A key challenge is aligning LLMs with user preferences while preserving their knowledge and reasoning. To enhance planning for new user interests using LLMs, this paper introduces a novel approach that combines hierarchical planning with LLM inference-time scaling. This method aims to improve recommendation relevancy without compromising novelty. We decouple novelty and user-alignment, training separate LLMs for each objective. We then scale up the novelty-focused LLM's inference and select the best-of-n predictions using the user-aligned LLM. Live experiments demonstrate efficacy, showing significant gains in both user satisfaction (measured by watch activity and active user counts) and exploration diversity.
+
+## 中文翻译（Chinese Translation）
+探索（exploration）——即拓宽用户既有偏好之外的体验——在大规模推荐系统中颇具挑战，原因在于反馈闭环（feedback loops）以及关于用户探索模式的信号有限。大语言模型（LLM）可利用其世界知识推荐这些闭环之外的新颖内容，从而提供潜在解决方案。一个关键挑战在于：在保留 LLM 知识与推理能力的同时，使其与用户偏好对齐。为增强 LLM 对用户新兴趣的规划能力，本文提出一种将分层规划（hierarchical planning）与 LLM 推理时扩展（inference-time scaling）相结合的新方法。该方法旨在不牺牲新颖性的前提下提升推荐相关性。我们将"新颖性"与"用户对齐"两个目标解耦，分别训练专门的 LLM；然后对聚焦新颖性的 LLM 进行推理时扩展（采样 n 个预测），再用与用户对齐的 LLM 从中选出最优预测（best-of-n）。在线实验验证了该方法的有效性：在用户满意度（以观看时长与活跃用户数衡量）和探索多样性两方面均取得显著提升。

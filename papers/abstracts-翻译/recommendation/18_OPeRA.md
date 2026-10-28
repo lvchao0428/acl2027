@@ -1,6 +1,8 @@
 # OPeRA: A Dataset of Observation, Persona, Rationale, and Action for
 
 > 来源文件：18_OPeRA.pdf
+> 发表年份：2026
+> 单位：Northeastern University and Sharif University of Technology；Northeastern University；Amazon；Amazon Science；Unity；Ohio State University, Columbus；Northeastern University and Harvard University；University of Notre Dame；Columbia University；Amazon and Northeastern University
 
 ## 英文原文摘要（Original Abstract）
 

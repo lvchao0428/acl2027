@@ -1,0 +1,10 @@
+# Text-like Encoding of Collaborative Information in Large Language Models for Recommendation
+> 来源文件：Text-like Encoding of Collaborative Information in Large Language Models for Recommendation.pdf
+> 发表年份：2024
+> 单位：National University of Singapore；University of Science and Technology of China
+
+## 英文原文摘要（Original Abstract）
+When adapting Large Language Models for Recommendation (LLMRec), it is crucial to integrate collaborative information. Existing methods achieve this by learning collaborative embeddings in LLMs' latent space from scratch or by mapping from external models. However, they fail to represent the information in a text-like format, which may not align optimally with LLMs. To bridge this gap, we introduce BinLLM, a novel LLMRec method that seamlessly integrates collaborative information through text-like encoding. BinLLM converts collaborative embeddings from external models into binary sequences — a specific text format that LLMs can understand and operate on directly, facilitating the direct usage of collaborative information in text-like format by LLMs. Additionally, BinLLM provides options to compress the binary sequence using dot-decimal notation to avoid excessively long lengths. Extensive experiments validate that BinLLM introduces collaborative information in a manner better aligned with LLMs, resulting in enhanced performance. We release our code at https://github.com/zyang1580/BinLLM.
+
+## 中文翻译（Chinese Translation）
+在将大语言模型适配于推荐任务（LLMRec）时，融合协同信息（collaborative information）至关重要。现有方法要么在 LLM 的隐空间中从头学习协同嵌入，要么将外部模型的协同嵌入映射到 LLM 空间。然而，这些方法未能以类文本（text-like）格式表示该信息，而这种格式才可能与 LLM 最优对齐。为填补这一空白，本文提出 BinLLM——一种新颖的 LLMRec 方法，通过类文本编码无缝融合协同信息。BinLLM 将外部模型得到的协同嵌入转换为二进制序列——一种 LLM 可直接理解和操作的特定文本格式，从而让 LLM 能直接以类文本方式使用协同信息。此外，BinLLM 还支持用点分十进制（dot-decimal notation）压缩二进制序列，以避免序列过长。大量实验验证：BinLLM 以与 LLM 更对齐的方式引入协同信息，从而带来性能提升。代码见：https://github.com/zyang1580/BinLLM。

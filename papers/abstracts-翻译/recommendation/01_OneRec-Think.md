@@ -1,6 +1,8 @@
 # ONEREC-THINK: In-Text Reasoning for Generative Recommendation
 
 > 来源文件：01_OneRec-Think.pdf
+> 发表年份：2026
+> 单位：Kuaishou- 快手科技；University of Science and Technology of China
 
 ## 英文原文摘要（Original Abstract）
 

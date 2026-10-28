@@ -1,6 +1,8 @@
 # What Makes LLMs Effective Sequential Recommenders?
 
 > 来源文件：08_RecPO.pdf
+> 发表年份：2026
+> 单位：ByteDance Inc.；Dartmouth College；University of Notre Dame
 
 ## 英文原文摘要（Original Abstract）
 

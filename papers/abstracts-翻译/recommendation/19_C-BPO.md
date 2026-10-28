@@ -1,6 +1,8 @@
 # Personalizing LLMs with Binary Feedback: A Preference-Corrected Optimization Framework
 
 > 来源文件：19_C-BPO.pdf
+> 发表年份：2026
+> 单位：Nanyang Technological University；Harbin Institute of Technology
 
 ## 英文原文摘要（Original Abstract）
 

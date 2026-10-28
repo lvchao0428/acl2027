@@ -1,6 +1,8 @@
 # MemRec: Collaborative Memory-Augmented
 
 > 来源文件：05_MemRec.pdf
+> 发表年份：2026
+> 单位：Hong Kong Baptist University；Rutgers University；Snap Inc.
 
 ## 英文原文摘要（Original Abstract）
 

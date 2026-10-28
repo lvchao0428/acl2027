@@ -1,0 +1,12 @@
+# Autonomous Information Seeking: A Roadmap for Agentic Recommender Systems
+> 来源文件：Autonomous Information Seeking - A Roadmap for Agentic Recommender Systems.pdf
+> 发表年份：2026（arXiv 2607.04433，2026 年 7 月）
+> 单位：National University of Singapore；Polytechnic University of Bari；Renmin University of China；University of Science and Technology of China
+
+## 英文原文摘要（Original Abstract）
+
+The rapid integration of large language model-based agents into recommender systems has driven a shift from static, ranking-based pipelines toward autonomous and interactive systems that can reason, plan, and act. This survey provides a comprehensive overview of this emerging landscape by introducing a unified taxonomy grounded in the level of autonomy and three core paradigms of agentic recommender systems: agent-assisted recommendation, agent-as-recommender, and agent-as-user-simulator. The autonomy framework organizes existing methods along increasing capabilities in proactivity, context awareness, interaction flexibility, and adaptivity. Building on this framework, the survey analyzes how each paradigm adopts different agentic architectures and how agents enhance key components such as profiles, memory, tool use, workflows, and optimization mechanisms. We further examine evaluation methodologies for agentic recommendation, covering automated metrics, LLM-based judging, and simulation-based assessment, and discuss their limitations in capturing reasoning quality, user experience, and system behavior. Beyond existing evaluation protocols, we further discuss unresolved issues in evaluating agentic recommender systems, including trajectory-level assessment, agent contribution analysis, and calibration of user simulation. Lastly, the survey outlines open challenges in lifelong user modeling, contextual abstraction, multimodal alignment, controllability, trustworthiness, privacy, scalability, and efficiency. Together, these analyses establish a unified foundation for understanding the current progress of agentic recommender systems and highlight promising opportunities for developing more autonomous, reliable, and human-aligned recommendation agents.
+
+## 中文翻译（Chinese Translation）
+
+大语言模型 agent 被迅速接进推荐系统，推荐因此从静态排序流程转向能够推理、规划和行动的自主交互系统。这篇综述用自主程度和三种范式来整理这一领域：agent 辅助推荐、agent 充当推荐器、agent 充当用户模拟器。自主程度沿着主动性、上下文感知、交互灵活性和适应性递增。在这个框架下，综述比较每种范式采用的 agent 架构，以及 agent 如何加强画像、记忆、工具使用、工作流和优化。评测部分覆盖自动指标、LLM 评判和基于模拟的评估，并讨论这些方法在推理质量、用户体验和系统行为上的局限。现有协议之外，尚未解决的评测问题包括轨迹级评估、agent 贡献分析和用户模拟的校准。最后列出的开放问题有终身用户建模、上下文抽象、多模态对齐、可控性、可信、隐私、可扩展性和效率。

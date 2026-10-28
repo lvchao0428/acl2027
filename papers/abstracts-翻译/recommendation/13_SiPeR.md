@@ -1,6 +1,8 @@
 # Where and What: Reasoning Dynamic and Implicit Preferences in
 
 > 来源文件：13_SiPeR.pdf
+> 发表年份：2026
+> 单位：The Hong Kong Polytechnic University；Hong Kong Polytechnic University；The Hong Kong Polytechnic University, The Hong Kong Polytechnic University
 
 ## 英文原文摘要（Original Abstract）
 
