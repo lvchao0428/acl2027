@@ -1,0 +1,1967 @@
+
+
+===== PAGE 1/10 =====
+Towards Next-Generation Recommender Systems: a Benchmark
+for Personalized Recommendation Assistant with LLMs
+Jiani Huang
+jianihuang01@gmail.com
+The Hong Kong
+Polytechnic University
+Hong Kong, China
+Shijie Wang
+shijie.wang@connect.polyu.hk
+The Hong Kong
+Polytechnic University
+Hong Kong, China
+Liang-bo Ning
+BigLemon1123@gmail.com
+The Hong Kong
+Polytechnic University
+Hong Kong, China
+Wenqi Fan†
+wenqi.fan@polyu.edu.hk
+The Hong Kong
+Polytechnic University
+Hong Kong, China
+Shuaiqiang Wang
+shqiang.wang@gmail.com
+Baidu Inc.
+Beijing, China
+Dawei Yin
+yindawei@acm.org
+Baidu Inc.
+Beijing, China
+Qing Li†
+qing-prof.li@polyu.edu.hk
+The Hong Kong
+Polytechnic University
+Hong Kong, China
+Abstract
+Recommender systems (RecSys) are widely used across various
+modern digital platforms and have garnered significant attention.
+Traditional recommender systems usually focus only on fixed and
+simple recommendation scenarios, making it difficult to generalize
+to new and unseen recommendation tasks in an interactive para-
+digm. Recently, the advancement of large language models (LLMs)
+has revolutionized the foundational architecture of RecSys, driving
+their evolution into more intelligent and interactive personalized
+recommendation assistants. However, most existing studies rely on
+fixed task-specific prompt templates to generate recommendations
+and evaluate the performance of personalized assistants, which
+limits the comprehensive assessments of their capabilities. This
+is because commonly used datasets lack high-quality textual user
+queries that reflect real-world recommendation scenarios, making
+them unsuitable for evaluating LLM-based personalized recommen-
+dation assistants. To address this gap, we introduce RecBench+, a
+new dataset benchmark designed to assess LLMs’ ability to handle
+intricate user recommendation needs in the era of LLMs. RecBench+
+encompasses a diverse set of queries that span both hard conditions
+and soft preferences, with varying difficulty levels. We evaluated
+commonly used LLMs on RecBench+ and uncovered below findings:
+1) LLMs demonstrate preliminary abilities to act as recommenda-
+tion assistants, 2) LLMs are better at handling queries with explicitly
+stated conditions, while facing challenges with queries that require
+reasoning or contain misleading information. Our dataset has been
+released at https://github.com/jiani-huang/RecBenchPlus.
+CCS Concepts
+• Information systems →Personalization.
+Keywords
+Recommender System, Recommendation Assistant, Large Language
+Models (LLMs), Dataset Benchmark.
+†Correspondence to: Wenqi Fan and Qing Li, Department of Computing, The Hong
+Kong Polytechnic University.
+WSDM ’26, Boise, ID, USA.
+2026. ACM ISBN 979-8-4007-2292-9/2026/02
+https://doi.org/10.1145/3773966.3777954
+ACM Reference Format:
+Jiani Huang, Shijie Wang, Liang-bo Ning, Wenqi Fan†, Shuaiqiang Wang,
+Dawei Yin, and Qing Li†. 2026. Towards Next-Generation Recommender
+Systems: a Benchmark for Personalized Recommendation Assistant with
+LLMs. In Proceedings of the Nineteenth ACM International Conference on Web
+Search and Data Mining (WSDM ’26), February 22–26, 2026, Boise, ID, USA.
+ACM, New York, NY, USA, 10 pages. https://doi.org/10.1145/3773966.3777954
+Recommender Systems (RecSys) play a crucial role in modern
+digital platforms, enabling personalized content delivery across
+domains such as e-commerce [2], entertainment [7], and educa-
+tion [32]. For example, YouTube once reported that 60% of the clicks
+on its homepage came from recommended content [4], revealing
+the huge commercial value of RecSys. Generally, these systems are
+trained to handle typical recommendation scenarios, such as “Cus-
+tomers Who Viewed This Also Viewed” to recommend alternatives or
+similar items and “Based on Your Browsing History” to recommend
+Top-K items of interest using a user’s historical data, as shown in
+Figure 1 (a). As one of the most representative algorithms, matrix
+factorization (MF) techniques [15] are proposed to learn latent rep-
+resentations of users and items based on user-item interactions for
+predicting matching scores in recommendations. However, these
+traditional recommendation methods are applicable only to a lim-
+ited range of simple and fixed recommendation scenarios, relying
+on pre-designed and well-trained recommendation methods, and
+they struggle to generalize to new and unseen recommendation
+tasks (i.e., recommendation queries) in an interactive paradigm.
+For instance, if a user searches for ‘a durable laptop for graphic
+design under $1500’, traditional approaches like MF depend only on
+the correlation between users and items, failing to capture these
+nuanced requirements and deliver appropriate recommendations.
+Recently, large language models (LLMs) like GPT-o1 [12], DeepSeek-
+R1 [8], and LLaMA [6] have demonstrated strong capabilities in
+generalization and reasoning. For instance, AUTOGLM [19] acts
+as an autonomous assistant, leveraging the LLMs’ human-like in-
+telligence in understanding and planning capabilities to help users
+control digital devices via GUIs and address complex tasks such as
+booking flights [28], collecting data [26], and coding [14, 22], sig-
+nificantly enhancing convenience in people’s daily lives. Inspired
+by the powerful capabilities of LLMs, many efforts have been made
+to incorporate LLMs into RecSys as personalized recommendation
+arXiv:2503.09382v2  [cs.IR]  2 Feb 2026
+
+
+===== PAGE 2/10 =====
+WSDM ’26, February 22–26, 2026, Boise, ID, USA.
+Jiani Huang et al.
+User
+LLM-based
+Rec Assistant
+    The male lead of Back to the
+Future Part II     is Michael J.
+Fox.    , who plays Marty McFly,
+the hoverboard-riding teen in
+the movie.
+       I first need to figure out
+which movie you're referring to.
+Based on your description, the
+movie could be Back to the Future
+Part II      .
+You may like Back to the
+Future      and Teen Wolf     .
+     Michael J. Fox    also starred
+in films like Back to the Future   
+    andTeen Wolf    , where his
+roles embody the same mix of
+humor and adventure.
+I remember a    sci-fi movie where
+the hero chased bad guys on a
+hoverboard with a time machine. I
+really liked the    male lead. I want
+more    similar movies with him !
+Advanced Reasoning Process
+User
+Top-k Items
+Watching History
+...
+Yes.
+Movie C.
+User
+(a) Traditional-based Recommendation
+(b) LLM-based Recommendation
+(c) Complex-query-based LLM Recommendation Assistant
+User
+LLM-based
+RecSys
+0.93
+0.91
+0.83
+0.79
+RecSys
+User
+Similar Items
+Watching History
+...
+...
+I have watched {movie_list}.
+Pick the most suitable film for
+me to watch next: {movie A, ...,
+movie C}.
+LLM-based
+RecSys
+...
+Customers Who Viewed This Also Viewed
+Based on Your Browsing History
+RecSys
+Mul-ti Conditions
+Multi-hop Reasoning
+More complex settings...
+1
+2
+3
+1
+Characteristics
+2
+3
+Both are thrilling adventures
+starring Michael J. Fox!
+I have watched {movie_list}. 
+Does {movie_i} suit for me?
+Figure 1: Illustration of different recommendation paradigms. (a) Traditional-based: Generating recommendations in fixed scenarios by
+learning user/item representations. (b) LLM-based recommendation Employing fixed and simple query templates, lacking evaluation in
+more complex scenarios. (c) Ours: Evaluating the LLM’s ability to handle complex, flexible user queries as a recommendation assistant.
+assistants in an interactive paradigm. For example, LLaRA [16]
+directly transforms users’ historical interactions into natural lan-
+guage formats (i.e., prompts) for personalized recommendations.
+Benefiting from LLMs, as shown in Figure 1 (b), these personal-
+ized recommendation assistants can handle more interactive and
+challenging scenarios, such as “Tell You What You Like,” which al-
+lows users to ask questions in a conversational manner and receive
+corresponding recommendations.
+Despite the remarkable success, current studies lack a compre-
+hensive evaluation of the recommendation capability of these LLM-
+based personalized recommendation assistants. Specifically, in the
+phases of both training and testing, most existing methods leverage
+fixed and simple task-specific prompt templates to generate recom-
+mendation responses, and assess the recommendation performance
+of these assistants, such as “Will the user like {movie_i}. Please an-
+swer Yes or No.” to determine whether to recommend a specific item,
+or “Please choose a movie from the candidate list {movie_1, movie_2,
+... }” to recommend a user-liked item. However, this evaluation
+paradigm fails to align with real-world practical scenarios, where
+the user queries can be highly complex when they interact with
+the LLM-based recommendation assistant. Consider the complex
+query illustrated in Figure 1 (c), the LLM-based recommendation
+assistant must first interpret the user’s description to identify the
+correct movie, then recognize the lead actor, and finally suggest
+similar films featuring that actor. This process requires the assis-
+tant to understand the query, perform multi-step reasoning, and
+consider multiple conditions—capabilities that go beyond basic at-
+tribute matching or shallow semantic understanding. Therefore,
+the results of existing LLM-based RecSys on traditional benchmark
+datasets may not apply to the new recommendation paradigm in
+the LLM era.
+Existing frequently used datasets, such as LastFM [25], Amazon
+Beauty [21], and Movielens-1M [9], typically only include basic user
+information, item metadata (e.g., title), and user-item interactions.
+These datasets are more suitable for assessing the accuracy perfor-
+mance of traditional RecSys but are not appropriate for effectively
+evaluating recommendation assistants in the era of LLMs, due to
+the lack of diverse complex user queries that can meet practical
+recommendation scenarios. To bridge this gap, we introduce a new
+benchmark, RecBench+, tailored for evaluating the potential of
+LLMs to act as personalized recommendation assistants. Specifi-
+cally, we propose a new dataset of approximately 30,000 complex
+user queries, covering a range of recommendation scenarios that
+require complex reasoning, including multiple conditions, multi-
+hop reasoning, misleading information, and diverse user profiles.
+This dataset is built from several commonly used recommendation
+datasets (e.g., Movielens-1M [9] and Amazon book1).
+We comprehensively evaluate the performance of seven widely
+used LLMs on RecBench+, including GPT-4o [11], Gemini-1.5-Pro [31],
+DeepSeek-R1 [8], etc. We further analyze various factors that impact
+model performance, such as the number of conditions, the integra-
+tion of user interaction history and different fine-tuning paradigms.
+Through extensive experiments with state-of-the-art LLMs in our
+benchmark, we obtain several insightful findings: (1) LLMs demon-
+strate preliminary abilities to act as recommendation assis-
+tant, but their strengths vary. GPT-4o and DeepSeek-R1 excel
+at user queries with clear conditions, while Gemini-1.5-Pro and
+DeepSeek-R1 perform better in queries without clear conditions
+but require a clear understanding of user profiles. (2) Fine-tuning
+notably boosts LLM recommendation performance, with a
+two-stage approach combining supervised fine-tuning (SFT)
+and reinforcement fine-tuning (RFT) performing best overall.
+This suggests that SFT effectively warms up the model for the task,
+enabling RFT to further refine performance. (3) For queries with
+user-specified conditions, LLMs are more adept at handling
+those with explicitly stated conditions. In contrast, queries that
+require reasoning or contain perturbations pose greater challenges.
+However, models equipped with advanced reasoning capabilities
+tend to perform better on such tasks. (4) For queries requiring
+user profile understanding, LLMs show varying performance
+across different user interests and demographics. For example,
+LLMs may be better at providing recommendations for popular
+interests and tend to perform more effectively for female users than
+for male users. Our contributions are summarized as follows:
+• Novel Recommendation Paradigm: We introduce a new para-
+digm for next-generation recommender systems, exploring the
+effectiveness of LLMs acting as personalized recommendation
+assistants in an interactive and intelligent way. As the first bench-
+mark to integrate LLMs in this way, we transform the traditional
+recommendation paradigm into a more personalized and context-
+aware experience, setting a new standard for this field.
+• Dataset Construction: We present a comprehensive dataset
+called RecBench+ to simulate practical recommendation scenar-
+ios in the era of LLMs. Our dataset encompasses approximately
+1https://archive.ics.uci.edu/ml/datasets/Amazon+book+reviews
+
+
+===== PAGE 3/10 =====
+Towards Next-Generation Recommender Systems: a Benchmark for Personalized Recommendation Assistant with LLMs
+WSDM ’26, February 22–26, 2026, Boise, ID, USA.
+30,000 complex user queries that require complex reasoning, in-
+cluding multiple conditions, multi-hop reasoning, misleading
+information, and diverse user profiles. To the best of our knowl-
+edge, this is the first public dataset that can be used to evaluate
+the performance of LLM-based recommendation assistants in
+complex and reasoning-intensive recommendation settings.
+• Comprehensive Evaluation: We conduct extensive experi-
+ments with state-of-the-art LLMs and fine-tune open-source mod-
+els for this task, analyzing their strengths and limitations in this
+task and providing actionable insights.
+1
+The RecBench+ Benchmark
+In this section, we first present an overview of the RecBench+
+benchmark. Then, we provide the construction methods of each
+data type included in our proposed dataset.
+1.1
+Overview
+In practical applications, user demands can generally be catego-
+rized into two types, each requiring specialized capabilities from
+LLM-based recommendation assistants. The first type is driven by
+specific conditions or constraints, such as asking for movies by a
+particular director or within a certain genre. This scenario demands
+strong reasoning capabilities from the recommendation assistant,
+as it requires the assistant to accurately interpret and apply the
+given constraints to generate appropriate recommendations. The
+second type does not involve specified conditions but requires rec-
+ommendation assistants to generate recommendations based on an
+understanding of the user’s profile (e.g., user interest, occupation,
+gender), which emphasizes the assistant’s ability to interpret the
+profile and provide personalized suggestions. Given that these two
+scenarios demand different capabilities from the recommendation
+assistant, we construct two distinct query types to evaluate their
+performance: Condition-based and User Profile-based. As shown in
+Table 1, our benchmark utilizes Amazon-Book and Movielens-
+1M2. Below, we detail the construction of Condition-based and User
+Profile-based queries based on these sources.
+1.1.1
+Condition-based Query. The Condition-based Query simu-
+lates scenarios where users impose concrete constraints (e.g., spe-
+cific directors or genres). The core challenge lies in accurately
+satisfying these conditions. To evaluate reasoning capabilities, we
+categorize this query into three types: Explicit Condition Query
+(directly stated constraints), Implicit Condition Query (vague inputs
+requiring multi-hop reasoning), and Misinformed Condition Query
+(containing errors or typos).
+• Explicit Condition Query: These queries explicitly specify the
+conditions that the recommended items should satisfy in the natu-
+ral language format. For example, the query, “Can you recommend
+movies featuring Gwyneth Paltrow?”, directly states the condition
+(“featured by Gwyneth Paltrow”) the recommendations must
+satisfy. Explicit condition queries are relatively straightforward
+because the constraints are clearly articulated.
+2Unlike the 10M/20M versions, MovieLens-1M includes essential user demographic
+data.
+Table 1: Statistics of RecBench+
+Major Category
+Sub Category
+Condition
+Movie
+Book
+Condition-based
+Query
+Explicit
+Condition
+1
+2,225
+2,260
+2
+2,346
+2,604
+3,4
+426
+271
+Implicit
+Condition
+1
+1,753
+1,626
+2
+1,552
+2,071
+3,4
+344
+213
+Misinformed
+Condition
+1
+1,353
+1,626
+2
+1,544
+2,075
+3,4
+342
+215
+User Profile-based
+Query
+Interest-based
+-
+7,365
+2,004
+Demographics-based
+-
+279
+0
+Queries in Total
+19,529
+14,965
+Number of Users
+6,036
+48,535
+Number of Items
+3,247
+50,088
+Number of User-Item Interactions
+29,459
+55,424
+• Implicit Condition Query: Unlike Explicit Condition Query,
+Implicit Condition Query involves incomplete specifications, de-
+manding multi-hop reasoning to deduce target conditions. For
+example, requesting “movies with the same cinematographer as
+Stay Hungry and Beethoven” requires inferring the unstated name
+(David Worth) first. This category serves as a more challenging
+benchmark for reasoning capabilities.
+• Misinformed Condition Query: Users may sometimes provide
+incorrect or misleading information about items in their queries.
+For example, the query, “I like ‘Avatar’ directed by Spielberg.
+Please recommend similar movies directed by him.”, incorrectly
+attributes the movie Avatar to Steven Spielberg. It is expected
+that recommendation assistants can first identify and correct
+this misinformation–recognizing that Avatar was not directed
+by Spielberg—before generating relevant recommendations. This
+subcategory presents a significant challenge to the robustness of
+the recommendation assistant, requiring it to accurately identify
+inaccurate information in users’ queries.
+1.1.2
+User Profile-based Query. In many real-world scenarios, users
+may not provide specific conditions to filter items but instead ex-
+pect to be recommended personalized results based on their profile
+information, such as interests (e.g., interest in special effects) or de-
+mographic attributes (e.g., gender, occupation). This is because users
+often lack a clear understanding of their own needs and instead seek
+recommendations that intuitively align with their background or
+preferences. To address this common situation, we introduce User
+Profile-based Query, which simulates these scenarios by requiring
+the recommendation assistant to generate personalized suggestions
+based on user profile information. We further divide User Profile-
+based Query into Interest-Based and Demographics-Based Query,
+since interests reflect users’ dynamic preferences, while demograph-
+ics capture more stable attributes like gender or occupation that
+influence their needs.
+• Interest-based Query: These queries reflect user interests that
+can’t be clearly defined by specific conditions. For example, users
+who watched “The Tree of Life” and “2046” in history may prefer
+movies with unique storytelling and visual beauty. To capture
+such interests, we create queries like, “I just watched ‘The Tree of
+Life’ and loved its poetic storytelling and visual design. Can you
+recommend other movies with a similar tone?” Such queries don’t
+
+
+===== PAGE 4/10 =====
+WSDM ’26, February 22–26, 2026, Boise, ID, USA.
+Jiani Huang et al.
+1.5 pt
+...
+movie KG
+book KG
+Data Source
+Knowledge Graph
+User-Item Interactions
+Fiction
+James
+Cameron
+Shared Relations
+ Movie: 
+<Genre, Fiction>
+<Director, Cameron>
+ Retrieve
+Item from KG
+Extract
+Relations
+ Explicit Condition:
+(Director, Cameron), (Genre, Fiction)
+ Implicit Condition:
+ (Genre, Fiction), (Director, "The
+director of The Abyss)
+ Misinformed Condition:
+ (Genre, Fiction), (Director, Cameron),
+        :Cameron directed Startreck
+LLM
+Generated Explicit Query:I like the
+unique storytelling of  Cameron's work,
+please recommend his fiction movies.
+Generated Implicit Query:I like the
+direction of The Abyss. I want to watch
+more films by the same director.
+Generated Misinformed Query: 
+I like Cameron's direcion in StarTreck. 
+I want to watch more fictions by him!
+Knowledge Sub-graph
+Misinformed 
+Instruction：
+Explict /Implicit /
+Input conditions: 
+You're given several
+conditions, please simulate a
+real user and generate a
+natural language query that
+covering these conditions to
+request recommendations for
+related items. 
+...
+Ground
+Truth
+#1 Item KG Construction
+#2 Shared Relation Extraction
+#3 Condition-based Query Generation
+Figure 2: Overview of the pipeline of constructing Condition-based Query.
+have explicit conditions but require the personalized recommen-
+dation assistant to understand and suggest items based on the
+user’s personal interest.
+• Demographics-based Query: These queries focus on how users’
+demographic attributes influence recommendations. Different
+users, based on their age, gender, or occupation, may have dis-
+tinct preferences and needs. For example, philosophy professors
+might be interested in films that explore moral dilemmas. By
+leveraging these patterns, we can craft queries such as: “I’m a
+philosophy professor looking for movies with complex themes and
+moral dilemmas. Can you recommend any?” By aligning with
+real-world demographic behaviors, these queries can mirror the
+personalized recommendations that a personalized recommenda-
+tion assistant should provide, ensuring that the suggestions are
+relevant and tailored to the user’s background and identity.
+1.2
+Condition-based Query Construction
+User queries often express preferences through conditions corre-
+sponding to item attributes, such as filtering movies by genre, di-
+rector, or actor. However, due to the intricate relationships between
+items and their attributes, it is challenging to generate realistic,
+diverse queries that reflect how users combine these attributes. It
+is worth noting that Knowledge Graph (KG), as a structured repre-
+sentation, explicitly connects items (e.g., movies) to their attributes
+(e.g., directors) and captures interdependencies between them (e.g.,
+“director X frequently collaborates with actor Y”). Therefore, we
+propose leveraging KG to extract meaningful conditions and gen-
+erate queries aligned with real-world user behavior. Specifically,
+our approach contains three key steps: Item Knowledge Graph (Item
+KG) construction, shared relation extraction, and query generation, as
+shown in Figure 2. We first build the Item KG, which links items to
+their attributes. Next, we identify item sets from the user’s interac-
+tion history that share the same attributes (e.g., movies directed by
+Christopher Nolan), forming the conditions for the query. Finally,
+we adopt LLMs to simulate users and generate queries based on
+these extracted conditions. The item sets that satisfy the conditions
+can serve as the ground truth for evaluation.
+1.2.1
+Item KG Construction. The Item KG forms the basis for gen-
+erating realistic Condition-based Query in RecBench+. We take
+advantage of different KGs for the movie and book domains:
+• Movies: We extract data from Wikipedia, focusing on 7 key at-
+tributes like directors, actors, composers, and genres. Each movie
+node is linked to these attributes.
+• Books: We use metadata from the Amazon Book Dataset, con-
+necting attributes like authors and categories to book nodes.
+Once the KGs are built, we combine them with traditional recom-
+mendation datasets, Movielens-1M and Amazon-Book, to generate
+conditions and queries step by step.
+1.2.2
+Shared Relation Extraction. Shared relations are common
+attributes found among items in a user’s interaction history. For
+example, if a user has watched multiple movies by the same director
+or starring the same actor, these shared attributes help generate
+Condition-based Queries. Given a user 𝑢with an interaction his-
+tory H𝑢= {𝑖1,𝑖2, . . . ,𝑖𝑘}, we employ a KG retrieval function R to
+identify shared attributes (relations) across subsets of items in H𝑢.
+Each shared relation is defined as a tuple (𝑟,𝑡), where 𝑟is the type
+of relation (e.g., “directed by”, “starring”) and 𝑡is the target value
+(e.g., name of director). The extraction process produces multiple
+groups of shared relations and their corresponding subsets of items,
+which can be represented as follows:
+R(H𝑢, 𝐾𝐺) = {(Gsub, Cshared) | Gsub ⊆H𝑢,
+Cshared = {(𝑟1,𝑡1), (𝑟2,𝑡2), . . .}} .
+(1)
+Here, Gsub represents a subset of items sharing the same relations
+Cshared. The extracted shared relations will later serve as conditions
+for query generation.
+1.2.3
+Query Generation. After extracting shared relations from
+the user’s interaction history, we generate three types of Condition-
+based Query: explicit, implicit, and misinformed. The steps to gen-
+erate these conditions and final queries are as follows:
+• Explicit Condition Construction: For explicit conditions, we
+directly adopt the shared relations extracted from the user’s
+interaction history. Specifically, we set the explicit condition
+Cexplicit = Cshared. This means the conditions are directly derived
+from the shared attributes (e.g., director, genre) associated with
+the items the user has interacted with.
+
+
+===== PAGE 5/10 =====
+Towards Next-Generation Recommender Systems: a Benchmark for Personalized Recommendation Assistant with LLMs
+WSDM ’26, February 22–26, 2026, Boise, ID, USA.
+Generated Reason:     is romance.         is romance
+films from Hollywood's golden era.
+Generated Query: I love watching romantic classics
+like     . Can you recommend other romance movies
+from Hollywood's golden era?
+Ground Truth:
+6
+1
+3
+3
+6
+1
+3
+Generate Reasons: Why most users in this group watched 
+Generate Queries: Based on above reasons, generate queries
+and corresponding movie subsets from Most Popular Movies. 
+Instruction：
+Instruction：
+Generate Reasons: Why users watch         after watching     ?
+Generate Queries: Based on above reasons, generate queries
+and corresponding movie subsets from             .
+1
+6
+3
+1
+6
+...
+Job Academics  Gender female
+Age 25
+Most Popular Movies  7
+4
+7 4
+Generated Reason:          blend romance with history
+or politics and are appealing to female academics.
+Generated Query: As a history professor, I like
+romance movies with historical or political context.
+Any recommendations?
+Ground Truth:
+7
+4
+7
+4
+a
+Please
+Common Interest Set
+Their Preceding Items
+1
+3
+6
+... (from users                  )
+6
+1
+5
+3
+1
+6
+4
+3
+1
+6
+2
+3
+Interaction Records
+User
+Interacted Items
+User Group
+Group by (job, gender)
+Group by (age, gender)
+...
+Job __  Gender __
+Most Popular Movies __
+Age __  Gender __
+Most Popular Movies __
+LLM
+LLM
+(a) Interest-based 
+Query Construction
+(b) Demographics-based 
+Query Construction
+Figure 3: Overview of the pipeline of constructing User Profile-based Query.
+• Implicit Condition Construction: For implicit conditions, in-
+stead of directly stating the specific value (e.g., the director’s
+name), we leverage the KG to describe them indirectly through
+related items. For example, instead of directly referencing James
+Cameron, we might use “the director of ‘The Abyss’ ”. Specifically,
+for a shared relation (𝑟𝑚,𝑡𝑚) ∈Cshared (e.g., (director, Cameron)),
+we replace the value that needs to be inferred, 𝑡𝑚(e.g., Cameron),
+with an indirect reference that describes 𝑡𝑚’s relation with an-
+other item 𝑖𝑘(e.g., The Abyss) from the KG. Mathematically, this
+can be expressed as:
+𝑖𝑘∈{𝑖∈I | (𝑡𝑚)
+𝑟𝑚
+−−→(𝑖) in KG},
+(2)
+where I is the set of all items in the KG. The resulting implicit
+condition is then:
+Cimplicit = (𝑟𝑖, ref(𝑖𝑘)),
+(3)
+where ref(𝑖𝑘) denotes a textual reference to 𝑖𝑘. For example, a
+shared relation like (director, Cameron) can be transformed into
+an implicit condition (director, “the director of ‘The Abyss’ ”),
+where “The Abyss” (𝑖𝑘) is retrieved from the KG as being con-
+nected to “Cameron” (𝑡0) via the “director” relation (𝑟0).
+• Misinformed Condition Construction: For misinformed con-
+ditions, we intentionally introduce factual error into the condi-
+tions, simulating real-world user errors where they might mis-
+takenly reference attributes or relationships. To generate a mis-
+informed condition, for a shared relation (𝑟𝑖,𝑡𝑖) ∈Cshared, we
+randomly select one or more items {𝑖1,𝑖2, . . . ,𝑖𝑚} ∈I from the
+KG that do not have the specified relationship 𝑟𝑖with 𝑡𝑖(i.e.,
+𝑖𝑘̸−→𝑡𝑖for each 𝑖𝑘∈{𝑖1,𝑖2, . . . ,𝑖𝑚}). We then construct the
+condition with “error info” that falsely claims these items are
+related to 𝑡𝑖through 𝑟𝑖:
+Cmisinformed = (𝑟𝑖,𝑡𝑖, error info: {𝑖1,𝑖2, . . . ,𝑖𝑚}
+𝑟𝑖−→𝑡𝑖),
+(4)
+where the set {𝑖1,𝑖2, . . . ,𝑖𝑚} contains items from the KG that
+do not actually share the relationship 𝑟𝑖with 𝑡𝑖. For example,
+a misinformed condition can be (director, Cameron, error info:
+Cameron is the director of ‘Startreck’).
+• Query Generation: For each condition type, we apply GPT-
+4o [11] to generate corresponding queries:
+𝑞= 𝐿𝐿𝑀(C, P),
+(5)
+where P is the prompt. For each generated query 𝑞, we construct
+a sample consisting of:
+(𝑞, H ′
+𝑢, G𝑞), where: H ′
+𝑢= H𝑢\ G𝑞,
+(6)
+G𝑞= {𝑖∈KG | Cshared ⊆A𝑖}.
+(7)
+Here, H ′
+𝑢is the user’s interaction history excluding items in
+G𝑞, and G𝑞contains the ground truth items satisfying the query
+conditions. A𝑖represents the attributes of item 𝑖in the KG.
+1.3
+User Profile-based Query Construction
+In addition to providing specific constraints, users may provide
+only basic personal information such as watching history or de-
+mographic attributes (e.g., age, occupation). To evaluate the LLM
+recommendation assistant’s ability to handle such scenarios, we
+introduce User Profile-based Query, which aims to generate person-
+alized recommendations based on user profile information without
+requiring specific filtering conditions. As detailed in Section 1.1.2,
+User Profile-based Query contains two subcategories: Interest-based
+Query and Demographics-based Query. The construction process is
+illustrated in Figure 3 .
+1.3.1
+Interest-based Query. These queries are designed to capture
+user interests that are not explicitly defined by specific conditions
+but are inferred from user interactions. To effectively simulate real-
+world scenarios, we focus on capturing the collective interests that
+emerge from shared behaviors from multiple users, which are more
+representative of general preferences and trends. For example, if
+many users who watched “The Dark Knight” also watched “In-
+ception”, this suggests a clear interest in action and suspense. In
+this way, we can craft queries that reflect collective user interests
+derived from shared behaviors. Specifically, we first identify Com-
+mon Interest Set, which are sets of items that frequently interact
+consecutively by multiple users. Let H𝑢denote the interaction his-
+tory of user 𝑢, and H = {H𝑢| 𝑢∈U} denote the set of all users’
+interaction histories. The common interest set can be defined as:
+𝑆= {𝑠| ∃𝑢∈U,𝑠⊆H𝑢, 𝑓(𝑠) ≥𝜃},
+(8)
+where 𝑓(𝑠) is the frequency of sequence 𝑠across all users’ histories,
+and 𝜃is a predefined frequency threshold.
+Once common interest sets are identified, we proceed to extract
+the preceding item sequences—that is, the sequences of items
+that commonly appear before the items of the common interest
+set. Let 𝑃(𝑠) denote the set of preceding item sequences for target
+sequence 𝑠. The preceding sequences can be defined as:
+𝑃(𝑠) = {𝑝| ∃𝑢∈U, 𝑝≺𝑠⊆H𝑢},
+(9)
+where 𝑝≺𝑠denotes that sequence 𝑝appears immediately before
+sequence 𝑠in the interaction history H𝑢.
+Based on the identified common interest set and preceding item
+sequences, we employ an LLM to analyze the patterns and infer the
+reasoning behind multiple users’ common interests. The generated
+query aims to reflect both the contextual features of the items and
+the common interests of users.
+1.3.2
+Demographics-based Query. Individuals with similar demo-
+graphics often share preferences; for instance, children typically
+favor animated films (e.g., Disney), whereas teenagers may prefer
+action or superhero movies. Leveraging this, we group users by
+
+
+===== PAGE 6/10 =====
+WSDM ’26, February 22–26, 2026, Boise, ID, USA.
+Jiani Huang et al.
+Table 2: Performance on Condition-based Query. The
+/
+means the best/the second-best result.
+Domain
+Model
+Explicit Condition (Easy)
+Implicit Condition (Medium)
+Misinformed Condition (Hard)
+Average
+P↑
+R↑
+CMR↑
+FTR↓
+P↑
+R↑
+CMR↑
+FTR↓
+P↑
+R↑
+CMR↑
+FTR↑
+P↑
+R↑
+CMR↑
+Movie
+GPT-4o-mini
+0.185
+0.322
+0.531
+0.009
+0.083
+0.167
+0.198
+0.017
+0.028
+0.060
+0.153
+0.104
+0.099
+0.183
+0.294
+GPT-4o
+0.308
+0.408
+0.714
+0.016
+0.145
+0.224
+0.301
+0.021
+0.019
+0.039
+0.106
+0.270
+0.157
+0.224
+0.374
+Gemini
+0.256
+0.408
+0.644
+0.052
+0.104
+0.206
+0.203
+0.014
+0.024
+0.049
+0.076
+0.030
+0.128
+0.221
+0.308
+Claude
+0.201
+0.422
+0.658
+0.014
+0.105
+0.269
+0.281
+0.011
+0.033
+0.079
+0.128
+0.087
+0.069
+0.183
+0.277
+DeepSeek-V3
+0.190
+0.401
+0.621
+0.001
+0.090
+0.260
+0.217
+0.001
+0.027
+0.078
+0.105
+0.013
+0.102
+0.246
+0.314
+DeepSeek-R1
+0.224
+0.447
+0.651
+0.001
+0.197
+0.463
+0.496
+0.005
+0.024
+0.068
+0.096
+0.024
+0.148
+0.326
+0.414
+Llama-3.1-70B
+0.238
+0.342
+0.609
+0.003
+0.097
+0.164
+0.210
+0.012
+0.037
+0.050
+0.116
+0.109
+0.124
+0.185
+0.312
+Book
+GPT-4o-mini
+0.059
+0.159
+0.475
+0.003
+0.035
+0.081
+0.446
+0.003
+0.013
+0.038
+0.581
+0.044
+0.036
+0.093
+0.501
+GPT-4o
+0.088
+0.192
+0.567
+0.027
+0.057
+0.133
+0.472
+0.021
+0.011
+0.024
+0.500
+0.445
+0.052
+0.116
+0.513
+Gemini
+0.076
+0.221
+0.623
+0.011
+0.035
+0.135
+0.319
+0.013
+0.014
+0.044
+0.274
+0.072
+0.042
+0.133
+0.405
+Claude
+0.054
+0.193
+0.608
+0.010
+0.043
+0.161
+0.515
+0.010
+0.020
+0.068
+0.444
+0.056
+0.039
+0.141
+0.522
+DeepSeek-V3
+0.040
+0.124
+0.667
+0.008
+0.056
+0.190
+0.385
+0.005
+0.014
+0.047
+0.230
+0.066
+0.037
+0.120
+0.351
+DeepSeek-R1
+0.072
+0.230
+0.471
+0.018
+0.060
+0.194
+0.167
+0.031
+0.015
+0.051
+0.333
+0.097
+0.049
+0.159
+0.324
+Llama-3.1-70B
+0.073
+0.170
+0.542
+0.022
+0.038
+0.082
+0.470
+0.052
+0.014
+0.028
+0.178
+0.158
+0.042
+0.093
+0.397
+attribute permutations (e.g., students aged 18–24) and identify their
+top-consumed items. We then input these demographics and item
+lists into an LLM to synthesize queries that capture group-specific
+patterns. The identified popular items serve as the ground truth for
+evaluation.
+1.4
+Data Filtering and Selection
+For Condition-based Query, we use string matching to check if the
+provided information (e.g., actor, director) appears in the query and
+filter out queries that omit this information. For User Profile-based
+Query, we manually verify the queries and filter out those that are
+too broad or unreasonable.
+2
+Experiments
+2.1
+Experiments Settings
+2.1.1
+Baselines. We evaluate several widely used models, includ-
+ing GPT-4o (2024-08-06) [11], GPT-4o-mini (2024-07-18) [11], Llama
+(Llama-3.1-70B-Instruct) [6], Gemini (gemini-1.5-pro-002) [30], Claude
+(claude-3-5-sonnet-20241022), DeepSeek-V3 [17], and DeepSeek-
+R1 [8] on our proposed dataset. However, we were unable to test
+the GPT-o1 [12] model because it flagged our prompts as violating
+its usage policy. In addition, we further perform full-parameter
+supervised fine-tuning (SFT) and reinforcement fine-tuning (RFT,
+based on the GRPO [27] algorithm) on the Qwen-2.5-3B-Instruct
+and LLaMA-3.2-3B-Instruct models to explore their potential per-
+formance gains under task-specific optimization.
+2.1.2
+Evaluation Metrics. We utilize the below metrics to evaluate
+LLM performance. To simulate real-world scenarios where users
+typically do not predefine the number of recommendations they
+need, we do not specify a fixed number of recommendations K in
+the testing prompts; however, we also include several experiments
+with a fixed K in Section 2.2 for reference.
+• Precision: The proportion of recommended items that are actu-
+ally relevant to the user’s query.
+• Recall [10]: The proportion of relevant items that are success-
+fully recommended out of all relevant items available.
+• Condition Match Rate (CMR): The percentage of recommended
+items that meet the specified conditions. For Condition-based
+Queries, it is important to check if the model’s recommenda-
+tions strictly align with the given conditions, as items that don’t
+meet these are likely unsatisfactory. Traditional metrics like Pre-
+cision and Recall are insufficient for evaluating this alignment.
+Therefore, we propose CMR to achieve this goal.
+• Fail to Recommend (FTR): This metric measures the propor-
+tion of queries where the model fails to generate recommended
+items. A lower FTR is preferred, indicating the model can gen-
+erate a list of items. However, in Misinformed Condition-based
+Query, a higher FTR shows the model’s ability to identify incor-
+rect information, thereby avoiding wrong recommendations.
+2.2
+Results on Condition-based Query
+Observation 1. For different LLMs, GPT-4o and DeepSeek-R1
+outperform other models. As shown in Table 2, GPT-4o achieves
+the highest Precision and the second-highest CMR average score on
+both the movie and book datasets, while DeepSeek-R1 ranks first in
+Recall and second in Precision. Notably, models with advanced rea-
+soning capabilities, such as DeepSeek-R1, excel in handling query
+types that require reasoning. For example, in Implicit Condition
+Query, DeepSeek-R1 exhibits a significantly smaller drop in perfor-
+mance compared to other models when transitioning from explicit
+to implicit conditions. This positions it as the leader in Implicit Con-
+dition Query performance. It suggests that the advanced reasoning
+ability enables the LLM-based assistant to infer implicit attributes
+not explicitly mentioned in the conditions, leading to more accurate
+recommendations. There is a case study in Appendix B.
+Observation 2. For different query types, model performance
+decreases with increasing query difficulty. In both the movie
+and book datasets, most LLMs perform best on Explicit Condition
+Query, outperforming the other two query types. This suggests that
+LLMs are better at handling queries that clearly state conditions.
+In contrast, implicit conditions present a greater challenge because
+models must infer constraints about items that are not explicitly
+stated. It is worth noting that models with strong reasoning capa-
+bilities like Deepseek-R1 maintain strong performance, suggesting
+benefits from its reasoning capability. In addition, the misinformed
+condition proves most difficult, with the lowest recall and CMR,
+indicating frequent failures in providing personalized recommen-
+dations when queries contain misleading information. Moreover,
+
+
+===== PAGE 7/10 =====
+Towards Next-Generation Recommender Systems: a Benchmark for Personalized Recommendation Assistant with LLMs
+WSDM ’26, February 22–26, 2026, Boise, ID, USA.
+1
+2
+3
+4
+Conditions
+0.0
+0.5
+Value
+Explicit Query
+1
+2
+3
+4
+Conditions
+0.0
+0.2
+0.5
+Implicit Query
+1
+2
+3
+4
+Conditions
+0.0
+0.1
+0.2
+Misinformed Query
+Recall
+Precision
+CMR
+FTR
+Figure 4: The effect of number of conditions.
+higher FTR rates under this condition suggest that LLM-based assis-
+tants may leverage general knowledge to detect misinformation in
+queries and avoid directly generating inaccurate recommendations.
+Observation 3. For different numbers of conditions in queries,
+Precision and Recall improve with more conditions, while
+CMR declines for Explicit Condition Query and rises for
+others. As Figure 4 illustrated, we take the movie dataset as an
+example and investigate the impact of varying the number of con-
+ditions in queries on model performance. We note that additional
+conditions narrow the recommendation scope, thus improving the
+recommendation accuracy. For example, the set of candidates for
+“Action movies by Nolan released after 2010” is much smaller than
+“movies by Nolan”, reducing ambiguity and improving the relevance
+of the recommendations. The impact of condition quantity on CMR
+metrics varies across query types. In Explicit Condition Query,
+CMR is highest with a single condition, as adding more conditions
+increases the difficulty of satisfying all constraints, leading to re-
+duced coverage. In contrast, for Implicit and Misinformed Condition
+Query, additional conditions provide more context, allowing the
+model to better infer implicit conditions and reduce the impact of
+factual error in the conditions. As a result, the CMR metric improves
+with more conditions in these query types.
+Observation 4. For the effect of user-item interaction history,
+incorporating them enhances recommendation quality in
+two key ways. The effect of incorporating user-item interaction
+history is shown in Figure 5. First, incorporating user-item history
+improves Precision across all query types by generating a more
+personalized recommendation list. The reason can be that queries
+with limited conditions (e.g., “movies directed by Nolan”) often
+yield a large candidate pool. By leveraging historical interactions,
+the model can prioritize select items that align with the user’s
+preferences and satisfy the query conditions, effectively filtering
+irrelevant candidates.
+Second, incorporating user history does not always improve
+CMR. By analyzing the output of the LLM assistant, we note that
+adding history can also introduce “distractor” items that reduce the
+0.0
+0.5
+1.0
+1.5
+2.0
+2.5
+Model
+0.0
+0.1
+0.2
+0.3
+Score
+Explicit - Precision
+0.0
+0.5
+1.0
+1.5
+2.0
+2.5
+Model
+0.00
+0.05
+0.10
+0.15
+Score
+Implicit - Precision
+0.0
+0.5
+1.0
+1.5
+2.0
+2.5
+Model
+0.00
+0.02
+0.04
+0.06
+Score
+Misinformed - Precision
+0.0
+0.5
+1.0
+1.5
+2.0
+2.5
+Model
+0.0
+0.2
+0.4
+0.6
+Score
+Explicit - CMR
+0.0
+0.5
+1.0
+1.5
+2.0
+2.5
+Model
+0.0
+0.1
+0.2
+0.3
+Score
+Implicit - CMR
+0.0
+0.5
+1.0
+1.5
+2.0
+2.5
+Model
+0.00
+0.05
+0.10
+0.15
+Score
+Misinformed - CMR
+GPT-4o (w/o history)
+GPT-4o (with history)
+Gemini (w/o history)
+Gemini (with history)
+Claude (w/o history)
+Claude (with history)
+Figure 5: The effect of incorporating user-item history.
+Table 3: Results on Condition-based Query with K=5
+Model
+Explicit
+Implicit
+Misinformed
+Average
+Recall
+CMR
+Recall
+CMR
+Recall
+CMR
+Recall
+CMR
+GPT-4o
+0.436
+0.657
+0.245
+0.266
+0.052
+0.077
+0.244
+0.333
+Gemini
+0.416
+0.607
+0.205
+0.195
+0.048
+0.062
+0.223
+0.288
+Claude
+0.436
+0.647
+0.247
+0.277
+0.075
+0.105
+0.253
+0.343
+model’s strict condition adherence. For example, the LLM assistant
+may recommend “The Prestige” for “Nolan films” due to the user’s
+fantasy genre bias in history. This suggests that incorporating his-
+tory may divert the model’s attention, making it more challenging
+to strictly adhere to the given conditions. These results highlight
+an important trade-off: while incorporating history can enhance
+the model’s understanding of user preferences, it may also hinder
+the model’s ability to closely align with the specific requirements
+in the query. Consequently, balancing the influence of historical
+data with the need for precise condition adherence is crucial for
+optimizing performance in recommendation assistants.
+Observation 5. Requiring the LLM to generate K recommen-
+dations aligns with previous observations. For Condition-
+based Query, there are samples where the number of items that sat-
+isfy the conditions in the query may be fewer than K. In such cases,
+requesting the model to output K recommendations could lead to
+suboptimal results. Therefore, in the main experiment presented in
+Table 2, we did not require the model to generate K recommenda-
+tions. However, to further explore this aspect, we also conducted
+additional experiments in which the LLM was instructed to output
+K items. The results, shown in Table 3, are based on the movie
+dataset and align with previous findings: LLMs perform best on
+Explicit Condition Queries, with performance gradually declining
+for Implicit Condition and Misinformed Condition Queries.
+Observation 6. For the performance of fine-tuning, both SFT
+and RFT significantly enhance the model’s recommendation
+performance. Given the recent interest in using RFT to improve
+model reasoning capabilities [27, 34], we aimed to explore its poten-
+tial in this context. We applied full-parameter SFT and RFT (based
+on the GRPO [27] algorithm) to fine-tune the Qwen-2.5-3B-Instruct
+and LLaMA-3.2-3B-Instruct models, and evaluated recall perfor-
+mance across different query types. As shown in Table 4, both
+fine-tuning paradigms notably improved the models’ recommen-
+dation performances. However, models trained solely with RFT
+performed worse than those trained with SFT. This performance
+Table 4: Fine-tuning performance on Condition-based Query
+Domain
+Model
+Fine-tuning
+Explicit
+Implicit
+Misinformed
+Movie
+Qwen-2.5-3B
+-
+0.019
+0.002
+0.004
+SFT
+0.391
+0.255
+0.296
+RFT
+0.178
+0.119
+0.089
+SFT+RFT
+0.410
+0.262
+0.307
+Llama-3.2-3B
+-
+0.018
+0.003
+0.003
+SFT
+0.285
+0.176
+0.186
+RFT
+0.191
+0.124
+0.080
+SFT+RFT
+0.293
+0.181
+0.195
+Book
+Qwen-2.5-3B
+-
+0.012
+0.007
+0.002
+SFT
+0.136
+0.251
+0.249
+RFT
+0.055
+0.090
+0.081
+SFT+RFT
+0.139
+0.262
+0.264
+Llama-3.2-3B
+-
+0.006
+0.004
+0.002
+SFT
+0.088
+0.221
+0.181
+RFT
+0.056
+0.092
+0.090
+SFT+RFT
+0.112
+0.237
+0.190
+
+
+===== PAGE 8/10 =====
+WSDM ’26, February 22–26, 2026, Boise, ID, USA.
+Jiani Huang et al.
+Table 5: Performance on User Profile-based Query. The
+/
+means the best/the second-best result, respectively.
+Model
+Interest-based Query
+Demographics-based Query
+Average
+P↑
+R↑
+FTR↓
+P↑
+R↑
+FTR↓
+P↑
+R↑
+FTR↓
+Movie
+GPT-4o-mini
+0.013
+0.058
+0.000
+0.018
+0.054
+0.000
+0.015
+0.056
+0.000
+GPT-4o
+0.018
+0.067
+0.001
+0.021
+0.059
+0.000
+0.020
+0.063
+0.000
+Gemini
+0.019
+0.072
+0.007
+0.019
+0.063
+0.000
+0.019
+0.072
+0.004
+Claude
+0.015
+0.082
+0.000
+0.018
+0.054
+0.000
+0.017
+0.068
+0.000
+DeepSeek-V3
+0.015
+0.071
+0.000
+0.019
+0.060
+0.000
+0.017
+0.066
+0.000
+DeepSeek-R1
+0.014
+0.081
+0.000
+0.015
+0.068
+0.000
+0.015
+0.075
+0.000
+Llama-3.1-70B
+0.014
+0.061
+0.000
+0.015
+0.046
+0.000
+0.015
+0.054
+0.000
+Book
+GPT-4o-mini
+0.038
+0.104
+0.004
+-
+-
+-
+0.038
+0.104
+0.004
+GPT-4o
+0.043
+0.101
+0.022
+-
+-
+-
+0.043
+0.101
+0.022
+Gemini
+0.056
+0.127
+0.049
+-
+-
+-
+0.056
+0.127
+0.049
+Claude
+0.018
+0.072
+0.012
+-
+-
+-
+0.018
+0.072
+0.012
+DeepSeek-V3
+0.020
+0.081
+0.005
+-
+-
+-
+0.020
+0.081
+0.005
+DeepSeek-R1
+0.030
+0.112
+0.031
+-
+-
+-
+0.030
+0.112
+0.031
+Llama-3.1-70B
+0.049
+0.098
+0.003
+-
+-
+-
+0.049
+0.098
+0.003
+gap may be attributed to the lack of a warm-up phase for reasoning,
+which is essential for effective exploration during reinforcement
+learning [1]. To validate this, we further divided the training pro-
+cess into two stages: first applying SFT as a warm-up, followed by
+RFT training. Experiment results demonstrate that this two-stage
+approach further improved LLMs’ performance. For example, in
+the movie’s explicit condition-based queries, the SFT+RFT model
+achieved a recall of 0.410, outperforming the SFT-only model (0.391)
+and the RFT-only model (0.178).
+2.3
+Results on User Profile-based Query
+Observation 7. For different LLMs, Gemini-1.5 Pro and DeepSeek-
+R1 demonstrated better performance compared to other mod-
+els. As shown in Table 5, larger and more advanced models, such
+as DeepSeek-R1 and Gemini-1.5-Pro, consistently achieve higher
+Precision and Recall. In contrast, smaller models like GPT-4o-mini
+tend to lag behind. From the FTR (Failure to Recommend) metrics
+perspective, most models exhibit a low failure rate, indicating their
+ability to effectively follow instructions and generate recommenda-
+tion lists in the required format.
+Observation 8. For different query types, Demographics-based
+Query exhibit lower Recall than Interest-based Query but
+similar Precision. Across all models, Recall for Demographics-
+based Query is generally lower than for Interest-based Query. This
+suggests that LLMs struggle to identify relevant recommendations
+when relying on user demographics. The difference in Recall can
+be attributed to the distinct ways in which these queries are con-
+structed. Interest-based Query leverages clear interest, making it
+easier for models to generate relevant recommendations. In contrast,
+Demographics-based Query requires recommendation assistants to
+infer preferences from broader demographic and behavioral trends,
+which introduces more variability and ambiguity.
+Observation 9. For Interest-based Query, queries constructed
+from less prevalent interests tend to be more challenging.
+As shown in Figure 6, we categorized the queries into four groups
+based on their popularity and conducted experiments on the movie
+and book datasets. It can be observed that interests that are shared
+by more users tend to yield higher Precision and Recall. This is likely
+because widely shared interests are more easily recognizable and
+interpretable by LLMs, leading to better performance. In contrast,
+the book domain shows an opposite trend. This is due to the nature
+of book data and the evaluation process. Books often have multiple
+editions or publishers, and popular titles tend to have more variants.
+Figure 6: Impact of Interest Popularity on Precision & Recall
+Therefore, the popular book (e.g., “Dune”) can suffer lower metrics
+because LLMs confuse editions/publishers (e.g., “Dune: 1965” vs.
+“2021 adaptation”). For less popular books, fewer variants exist,
+making it easier for LLMs to provide exact matches, which leads to
+higher performance metrics.
+Figure 7: Performance of queries with various demographics.
+Observation 10. For Demographics-based Query, the perfor-
+mances of LLMs show notable variations based on different
+user demographics. For instance, as figure 7 shows, we note
+that models exhibit higher accuracy for female users. It reflects
+more consistent preference patterns of female users (e.g., stable
+genre preferences like romantic comedies), which allows the model
+to make accurate recommendations. From the perspective of age,
+LLMs perform better regarding Recall for people aged 50–55. This is
+likely because their preferences are more focused and less affected
+by rapidly changing popular culture compared to younger users,
+who tend to have more diverse preferences. For users aged 56 and
+above, the model’s effectiveness is not as strong as it is for the 50–55
+age group, possibly because older users engage less frequently in
+online activities, such as rating movies. As a result, there is less
+data about this age group in the training set of LLMs, which makes
+it more challenging for LLMs to understand their preferences.
+Observation 11. For User Profile-based Query, both fine-tuning
+methods lead to clear performance gains. As shown in Table 6,
+Table 6: Fine-tuning on User Profile-based Query
+Domain
+Model
+Fine-tuning
+Interest-based
+Demographics-based
+Movie
+Qwen-2.5-3B
+-
+0.015
+0.029
+SFT
+0.287
+0.154
+RFT
+0.143
+0.228
+SFT+RFT
+0.289
+0.230
+Llama-3.2-3B
+-
+0.014
+0.019
+SFT
+0.139
+0.102
+RFT
+0.111
+0.122
+SFT+RFT
+0.144
+0.131
+Book
+Qwen-2.5-3B
+-
+0.026
+-
+SFT
+0.268
+-
+RFT
+0.108
+-
+SFT+RFT
+0.270
+-
+Llama-3.2-3B
+-
+0.022
+-
+SFT
+0.189
+-
+RFT
+0.095
+-
+SFT+RFT
+0.193
+-
+
+
+===== PAGE 9/10 =====
+Towards Next-Generation Recommender Systems: a Benchmark for Personalized Recommendation Assistant with LLMs
+WSDM ’26, February 22–26, 2026, Boise, ID, USA.
+all fine-tuned models consistently outperform the base model. The
+SFT+RFT approach delivers the strongest overall performance, with
+SFT close behind. However, in certain cases—such as demographics-
+based queries—RFT outperforms SFT; for example, in the Qwen-2.5-
+3B model, RFT achieves a recall of 0.228 compared to SFT’s 0.154.
+We also observe that after fine-tuning, Qwen models generally
+show better results than the LLaMA models.
+3
+Related Work
+Recent advances in LLM-based recommender systems [23, 24, 33]
+have led to the development of various benchmarks to evaluate their
+capabilities [13, 18, 29, 35, 36]. Early efforts like LLMRec [18] focus
+on traditional recommendation tasks (e.g., rating prediction, se-
+quential recommendation), establishing baselines for LLMs against
+classical methods. In addition to traditional recommendation tasks,
+recent studies have increasingly focused on evaluating the unique
+characteristics of LLM for recommendations. For instance, one re-
+cent study [13] introduces a multi-dimensional framework that
+assesses not only utility and novelty but also LLM’s specific behav-
+iors like history length sensitivity (how recommendations perform
+with sparse user histories) and hallucination (generation of non-
+existent items). Similarly, PerRecBench [29] isolates personalization
+accuracy by eliminating biases in users and item ratings, testing
+whether LLMs infer user preferences.
+Meanwhile, with the rise of LLMs, varying benchmarks have
+been proposed to evaluate their capabilities as assistants. For exam-
+ple, Gaia [20] measures LLM’s capabilities as a general-purpose AI
+assistant. In addition, domain-specific frameworks like VoiceBench
+(for voice assistant) [5] and Mobile-Bench (for mobile assistant) [3]
+assess the ability of LLM as the specific assistant. However, despite
+progress in both recommendation and assistant evaluation, there
+remains a gap in assessing LLMs as personalized recommendation
+assistants. To bridge this gap, we introduce RecBench+, a novel
+benchmark designed to evaluate LLMs’ potential as personalized
+recommendation assistants.
+4
+Conclusion
+In this paper, we introduce a new paradigm for next-generation
+recommender systems and propose a novel benchmark dataset,
+RecBench+, to evaluate the potential of LLMs as personalized rec-
+ommendation assistants. Our benchmark includes five specially
+designed query types that comprehensively assess LLM-based as-
+sistants’ capabilities in handling complex user queries in real-world
+scenarios. We conduct extensive experiments on a diverse set of
+LLMs, including those with advanced reasoning capabilities. Through
+these experiments, we present 11 detailed observations that shed
+light on the strengths and limitations of LLMs in serving as person-
+alized recommendation assistants. We also explore the impact of
+different fine-tuning strategies on enhancing recommendation per-
+formance. We hope our benchmark and findings lay a foundation
+for future research and development in this domain.
+Acknowledgments
+The research described in this paper has been partially supported
+by the General Research Funds from the Hong Kong Research
+Grants Council (project no. PolyU 15207322, 15200023, 15206024,
+Case Study
+Query: I recently enjoyed the cinematography in Taps (1981) and Ab-
+sence of Malice (1981), both of which showcased Scott Ambrozy’s incred-
+ible work. I’m eager to find more films that feature his cinematography
+style. Any recommendations?
+Ground Truth: 3 Days of the Condor (a.k.a. Three Days of the Condor)
+(1975), Network (1976), The Exorcist (1973), The Stepford Wives (1975) ; or
+"None"
+Output (DeepSeek-V3): The Chosen (1981), Four Friends (1981), Split Image
+(1982), Heart Like a Wheel (1983) ✗
+Output (DeepSeek-R1): The French Connection (1971), The Exorcist (1973),
+Network (1976), Three Days of the Condor (1975), The Electric Horseman
+(1979), Straight Time (1978), The Prince of the City (1981), Wyatt Earp (1994).
+Note: The films listed above feature the cinematography of Owen Roizman,
+who shot Taps and Absence of Malice. Scott Ambrozy appears to be a confusion
+or typo in the query. ✓
+Reasoning (DeepSeek-R1): ... Wait, first, who is Scott Ambrozy? I know
+some big cinematographers, but this name isn’t ringing a bell. Maybe I should
+verify if there’s a Scott Ambrozy in the industry. Let me think. Maybe the user
+misspelled the name? Looking up Taps on IMDb, yeah, Owen Roizman is the
+cinematographer for Taps. Absence of Malice also lists Owen Roizman. So Scott
+Ambrozy might be a confusion with another name. So the user probably
+meant Owen Roizman. So to answer correctly, I should recommend other
+films by Owen Roizman. Since the user wants movies with his cinematog-
+raphy style, I should list those. Roizman’s notable works include...
+and 15224524), internal research funds from Hong Kong Polytechnic
+University (project no. P0042693, P0048625, and P0051361). This
+work was supported by computational resources provided by The
+Centre for Large AI Models (CLAIM) of The Hong Kong Polytechnic
+University.
+APPENDIX
+A
+Prompts for Model Testing
+The prompts we use for testing different LLMs are:
+• w/o user-item interaction history: You are a movie recommender
+system. You are given a query from the user. You need to rec-
+ommend movies that satisfy the user’s query. Please output the
+recommended movies directly; do not output other content.
+• with user-item interaction history: You are a movie (/book) rec-
+ommender system. You are given a user’s watched movies (/read-
+ing history) and a query from the user. You need to recommend
+movies (/books) that satisfy the user’s query and user preferences.
+Please output the recommended movies directly; do not output
+other content.
+B
+Case Study
+We present a case study to illustrate how LLMs handle complex user
+queries. In this example, the user seeks movies with the same cine-
+matographer as two given films. The model DeepSeek-V3, lacking
+strong reasoning abilities, mistakenly lists movies by Scott Ambrozy,
+leading to incorrect recommendations. In contrast, DeepSeek-R1
+first verifies whether Scott Ambrozy is the cinematographer, then
+correctly identifies Owen Roizman as the actual cinematographer.
+It finally infers that the user intended to ask about Roizman’s films,
+providing accurate recommendations.
+
+
+===== PAGE 10/10 =====
+WSDM ’26, February 22–26, 2026, Boise, ID, USA.
+Jiani Huang et al.
+Ethical Considerations
+Our work utilizes an LLM and public recommendation datasets
+for query generation. We have described the details of the genera-
+tion process of our dataset in the main text of our paper. It is worth
+noting that all data in our dataset has been checked by human
+annotators to avoid harmful content. Therefore, our dataset does
+not pose any potential harm to human society.
+References
+[1] Hongyi James Cai, Junlin Wang, Xiaoyin Chen, and Bhuwan Dhingra. 2025.
+How Much Backtracking is Enough? Exploring the Interplay of SFT and RL in
+Enhancing LLM Reasoning. arXiv preprint arXiv:2505.24273 (2025).
+[2] Jiao Chen, Luyi Ma, Xiaohan Li, Nikhil Thakurdesai, Jianpeng Xu, Jason HD
+Cho, Kaushiki Nag, Evren Korpeoglu, Sushant Kumar, and Kannan Achan. 2023.
+Knowledge graph completion models are few-shot learners: An empirical study
+of relation labeling in e-commerce with llms. arXiv preprint arXiv:2305.09858
+(2023).
+[3] Yiming Chen, Xianghu Yue, Chen Zhang, Xiaoxue Gao, Robby T Tan, and Haizhou
+Li. 2024. Voicebench: Benchmarking llm-based voice assistants. arXiv preprint
+arXiv:2410.17196 (2024).
+[4] James Davidson, Benjamin Liebald, Junning Liu, Palash Nandy, Taylor Van Vleet,
+Ullas Gargi, Sujoy Gupta, Yu He, Mike Lambert, Blake Livingston, et al. 2010.
+The YouTube video recommendation system. In Proceedings of the fourth ACM
+conference on Recommender systems. 293–296.
+[5] Shihan Deng, Weikai Xu, Hongda Sun, Wei Liu, Tao Tan, Jianfeng Liu, Ang Li, Jian
+Luan, Bin Wang, Rui Yan, et al. 2024. Mobile-bench: An evaluation benchmark
+for llm-based mobile agents. arXiv preprint arXiv:2407.00993 (2024).
+[6] Abhimanyu Dubey, Abhinav Jauhri, Abhinav Pandey, Abhishek Kadian, Ahmad
+Al-Dahle, Aiesha Letman, Akhil Mathur, Alan Schelten, Amy Yang, Angela Fan,
+et al. 2024. The llama 3 herd of models. arXiv preprint arXiv:2407.21783 (2024).
+[7] Yunfan Gao, Tao Sheng, Youlin Xiang, Yun Xiong, Haofen Wang, and Jiawei
+Zhang. 2023. Chat-rec: Towards interactive and explainable llms-augmented
+recommender system. arXiv preprint arXiv:2303.14524 (2023).
+[8] Daya Guo, Dejian Yang, Haowei Zhang, Junxiao Song, Ruoyu Zhang, Runxin
+Xu, Qihao Zhu, Shirong Ma, Peiyi Wang, Xiao Bi, et al. 2025. Deepseek-r1:
+Incentivizing reasoning capability in llms via reinforcement learning. arXiv
+preprint arXiv:2501.12948 (2025).
+[9] F Maxwell Harper and Joseph A Konstan. 2015. The movielens datasets: History
+and context. Acm transactions on interactive intelligent systems (tiis) 5, 4 (2015),
+1–19.
+[10] Xiangnan He, Kuan Deng, Xiang Wang, Yan Li, Yongdong Zhang, and Meng
+Wang. 2020. Lightgcn: Simplifying and powering graph convolution network for
+recommendation. In Proceedings of the 43rd International ACM SIGIR conference
+on research and development in Information Retrieval. 639–648.
+[11] Aaron Hurst, Adam Lerer, Adam P Goucher, Adam Perelman, Aditya Ramesh,
+Aidan Clark, AJ Ostrow, Akila Welihinda, Alan Hayes, Alec Radford, et al. 2024.
+Gpt-4o system card. arXiv preprint arXiv:2410.21276 (2024).
+[12] Aaron Jaech, Adam Kalai, Adam Lerer, Adam Richardson, Ahmed El-Kishky,
+Aiden Low, Alec Helyar, Aleksander Madry, Alex Beutel, Alex Carney, et al. 2024.
+Openai o1 system card. arXiv preprint arXiv:2412.16720 (2024).
+[13] Chumeng Jiang, Jiayin Wang, Weizhi Ma, Charles LA Clarke, Shuai Wang, Chuhan
+Wu, and Min Zhang. 2024. Beyond Utility: Evaluating LLM as Recommender.
+arXiv preprint arXiv:2411.00331 (2024).
+[14] Majeed Kazemitabaar, Runlong Ye, Xiaoning Wang, Austin Zachary Henley,
+Paul Denny, Michelle Craig, and Tovi Grossman. 2024. Codeaid: Evaluating
+a classroom deployment of an llm-based programming assistant that balances
+student and educator needs. In Proceedings of the 2024 chi conference on human
+factors in computing systems. 1–20.
+[15] Yehuda Koren, Robert Bell, and Chris Volinsky. 2009. Matrix factorization tech-
+niques for recommender systems. Computer 42, 8 (2009), 30–37.
+[16] Jiayi Liao, Sihang Li, Zhengyi Yang, Jiancan Wu, Yancheng Yuan, Xiang Wang,
+and Xiangnan He. 2024. Llara: Large language-recommendation assistant. In
+Proceedings of the 47th International ACM SIGIR Conference on Research and
+Development in Information Retrieval. 1785–1795.
+[17] Aixin Liu, Bei Feng, Bing Xue, Bingxuan Wang, Bochao Wu, Chengda Lu, Cheng-
+gang Zhao, Chengqi Deng, Chenyu Zhang, Chong Ruan, et al. 2024. Deepseek-v3
+technical report. arXiv preprint arXiv:2412.19437 (2024).
+[18] Junling Liu, Chao Liu, Peilin Zhou, Qichen Ye, Dading Chong, Kang Zhou, Yueqi
+Xie, Yuwei Cao, Shoujin Wang, Chenyu You, et al. 2023. Llmrec: Benchmarking
+large language models on recommendation task. arXiv preprint arXiv:2308.12241
+(2023).
+[19] Xiao Liu, Bo Qin, Dongzhu Liang, Guang Dong, Hanyu Lai, Hanchen Zhang, Han-
+lin Zhao, Iat Long Iong, Jiadai Sun, Jiaqi Wang, et al. 2024. Autoglm: Autonomous
+foundation agents for guis. arXiv preprint arXiv:2411.00820 (2024).
+[20] Grégoire Mialon, Clémentine Fourrier, Thomas Wolf, Yann LeCun, and Thomas
+Scialom. 2023. Gaia: a benchmark for general ai assistants. In The Twelfth Inter-
+national Conference on Learning Representations.
+[21] Jianmo Ni, Jiacheng Li, and Julian McAuley. 2019. Justifying recommendations
+using distantly-labeled reviews and fine-grained aspects. In Proceedings of the
+2019 conference on empirical methods in natural language processing and the 9th
+international joint conference on natural language processing (EMNLP-IJCNLP).
+188–197.
+[22] Gustavo Pinto, Cleidson De Souza, João Batista Neto, Alberto Souza, Tarcísio
+Gotto, and Edward Monteiro. 2024. Lessons from building stackspot ai: A con-
+textualized ai coding assistant. In Proceedings of the 46th International Conference
+on Software Engineering: Software Engineering in Practice. 408–417.
+[23] Haohao Qu, Wenqi Fan, and Shanru Lin. 2025. Generative Recommendation with
+Continuous-Token Diffusion. arXiv preprint arXiv:2504.12007 (2025).
+[24] Haohao Qu, Wenqi Fan, Zihuai Zhao, and Qing Li. 2024. TokenRec: Learning
+to Tokenize ID for LLM-based Generative Recommendation. arXiv preprint
+arXiv:2406.10450 (2024).
+[25] Markus Schedl. 2016. The lfm-1b dataset for music retrieval and recommendation.
+In Proceedings of the 2016 ACM on international conference on multimedia retrieval.
+103–110.
+[26] Samuel Schmidgall, Yusheng Su, Ze Wang, Ximeng Sun, Jialian Wu, Xiaodong
+Yu, Jiang Liu, Zicheng Liu, and Emad Barsoum. 2025. Agent laboratory: Using
+llm agents as research assistants. arXiv preprint arXiv:2501.04227 (2025).
+[27] Zhihong Shao, Peiyi Wang, Qihao Zhu, Runxin Xu, Junxiao Song, Xiao Bi, Haowei
+Zhang, Mingchuan Zhang, YK Li, Yang Wu, et al. 2024. Deepseekmath: Pushing
+the limits of mathematical reasoning in open language models. arXiv preprint
+arXiv:2402.03300 (2024).
+[28] Harmanpreet Singh, Nikhil Verma, Yixiao Wang, Manasa Bharadwaj, Homa
+Fashandi, Kevin Ferreira, and Chul Lee. 2024. Personal Large Language Model
+Agents: A Case Study on Tailored Travel Planning. In Proceedings of the 2024
+Conference on Empirical Methods in Natural Language Processing: Industry Track.
+486–514.
+[29] Zhaoxuan Tan, Zinan Zeng, Qingkai Zeng, Zhenyu Wu, Zheyuan Liu, Fengran
+Mo, and Meng Jiang. 2025. Can Large Language Models Understand Preferences
+in Personalized Recommendation? arXiv preprint arXiv:2501.13391 (2025).
+[30] Gemini Team, Rohan Anil, Sebastian Borgeaud, Jean-Baptiste Alayrac, Jiahui
+Yu, Radu Soricut, Johan Schalkwyk, Andrew M Dai, Anja Hauth, Katie Millican,
+et al. 2023. Gemini: a family of highly capable multimodal models. arXiv preprint
+arXiv:2312.11805 (2023).
+[31] Gemini Team, Petko Georgiev, Ving Ian Lei, Ryan Burnell, Libin Bai, Anmol
+Gulati, Garrett Tanzer, Damien Vincent, Zhufeng Pan, Shibo Wang, et al. 2024.
+Gemini 1.5: Unlocking multimodal understanding across millions of tokens of
+context. arXiv preprint arXiv:2403.05530 (2024).
+[32] María Cora Urdaneta-Ponte, Amaia Mendez-Zorrilla, and Ibon Oleagordia-Ruiz.
+2021. Recommendation systems for education: Systematic review. Electronics 10,
+14 (2021), 1611.
+[33] Shijie Wang, Wenqi Fan, Yue Feng, Shanru Lin, Xinyu Ma, Shuaiqiang Wang, and
+Dawei Yin. 2025. Knowledge graph retrieval-augmented generation for llm-based
+recommendation. arXiv preprint arXiv:2501.02226 (2025).
+[34] Fengli Xu, Qianyue Hao, Zefang Zong, Jingwei Wang, Yunke Zhang, Jingyi Wang,
+Xiaochong Lan, Jiahui Gong, Tianjian Ouyang, Fanjin Meng, et al. 2025. Towards
+large reasoning models: A survey of reinforced reasoning with large language
+models. arXiv preprint arXiv:2501.09686 (2025).
+[35] Haochen Xue, Feilong Tang, Ming Hu, Yexin Liu, Qidong Huang, Yulong Li,
+Chengzhi Liu, Zhongxing Xu, Chong Zhang, Chun-Mei Feng, et al. 2025. MMRC:
+A Large-Scale Benchmark for Understanding Multimodal Large Language Model
+in Real-World Conversation. arXiv preprint arXiv:2502.11903 (2025).
+[36] Jizhi Zhang, Keqin Bao, Yang Zhang, Wenjie Wang, Fuli Feng, and Xiangnan
+He. 2023. Is chatgpt fair for recommendation? evaluating fairness in large lan-
+guage model recommendation. In Proceedings of the 17th ACM Conference on
+Recommender Systems. 993–999.
