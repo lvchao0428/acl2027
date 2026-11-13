@@ -1,0 +1,31 @@
+> 版权声明：本文档为对应英文论文前两节的中文导读，仅供论文快速阅读使用。不替代原文，不构成对原文的完整翻译或再发表。原文版权归作者与出版方所有。
+
+**原文件名：** OMOP-text-to-SQL_ClinicalNLP2026.pdf
+
+**原文标题：** An OMOP-Based Open-Source Text-to-SQL Benchmark Dataset
+
+**作者：** Paul Legrand、Kawsar Noor、Satyam Bhagwanani（University College London）；Richard J Dobson（University College London 与 King’s College London）。
+
+**场合：** Clinical NLP 2026，*Proceedings of the 8th Workshop on Clinical Natural Language Processing (Clinical NLP) @ LREC 2026*，第 381–393 页，2026 年 5 月 16 日，ELRA。
+
+## 摘要 Abstract
+
+电子病历仓库难用，是因为既要会 SQL，又要熟悉复杂的临床 schema。本文发布一个开源的 OMOP Common Data Model text-to-SQL 基准，模式版本为 CDM v5.4，并加一条安全约定：要么输出一条可执行 SQL，要么对无法回答的请求输出弃答记号 `<NO_SQL>`。输入先做概念归一化，实体写成 OMOP concept ID，从而把 SQL 生成和实体链接拆开。评测在一个合成的 OMOP PostgreSQL 库上分别执行预测查询和参考查询，报告 Execution Accuracy（结果是否等价），以及一个可靠性分数：正确弃答加分，不安全的尝试扣分。数据由 75 个改写成 OMOP 的模板产生 6,690 条改写，划分按模板和 SQL 变体控制，避免改写泄漏。
+
+摘要所报的后文主结果是一句：用 LoRA 微调的 Llama-3-8B-Instruct 达到 93.55% 的执行准确率，弃答可靠性也更好，只注入 schema 的基线则没有满足这套输出约定。摘要未标表号。数据集、划分、数据库转储和可复现评测流程一并发布。关键词为 Text-to-SQL、Electronic Health Records (EHR)、OMOP CDM、Large Language Models (LLMs)。
+
+## 1. Introduction
+
+电子病历里有大量结构化临床数据，抽队列或做汇总仍然要靠 SQL 和 schema 知识。Text-to-SQL 可以让人用自然语言查询，但临床部署很难：成绩高度依赖 schema，看上去合理的 SQL 也可能静默地抽出错误队列。因此评测应优先看可执行、忠实于 schema 的 SQL，并量化对风险敏感的可靠性，包括请求无法由数据库回答时的弃答（Geifman and El-Yaniv, 2019）。Spider（Yu et al., 2018）推动了通用进展，但其 schema 和评测设置与医院仓库不同，迁移有限；必须按执行结果评分，因为语法正确的 SQL 仍可能因为错误的连接或谓词而在临床上是错的。更早的系统常依赖显式 schema linking 和关系感知的 schema 编码器，例如 RAT-SQL（Wang et al., 2020）。
+
+近期临床数据加入了模板题和不可回答题来测弃答，但明确落在 OMOP-CDM 上、又做成基准形态的资源仍然少，尽管这一模型已被广泛采用。面向 OMOP 的工作往往范围更窄，例如流行病学问答，也很少做成针对具体引擎、完全可执行、并写明弃答约定的基准。Ziletti and DAmbrosi (2024) 用 RAG 管道做流行病学场景下的 OMOP-CDM text-to-SQL；本文的差别是显式纳入不可回答请求，并规定专用弃答记号。OMOP CDM 是 OHDSI 社区推动的标准化关系 schema（Hripcsak et al., 2015），曾被用于跨异构库的大规模观察性安全监测（Overhage et al., 2012），也被当作纵向登记库的实用公共数据模型评估过（Garza et al., 2016）。
+
+任务把临床风格的自由文本请求变成 OMOP CDM v5.4 上的可执行查询。接口很严：只输出 SQL，且是恰好以一个分号结尾的一条语句，或者输出 `<NO_SQL>`。OMOP 的概念名称不是可靠的键，稳妥的队列定义用基于 concept_id 的谓词，必要时再沿词表关系展开；因此医学约束被编码成概念标识，评的是扎根于 OMOP 的 SQL 生成，而不是脆弱的字符串匹配。基准只评“概念已经归一化之后”的下游 SQL 生成，从原始文本做临床实体链接留到以后的端到端工作。发布物在 https://github.com/red1dwarf/TEXT-TO-OMOP ，包括：带 `<NO_SQL>` 标签的 OMOP CDM v5.4 数据；把同一查询的改写留在同一份划分里、并控制模板与 SQL 变体重叠的训练/验证/测试划分；在只读 PostgreSQL 上结合文本指标、可回答性检测和执行评分的评测套件，外加事后诊断；以及 LoRA 微调与 schema 注入基线的训练推理脚本，和可选的合成 OMOP PostgreSQL 转储。
+
+## 2. Method
+
+任务是在严格可执行约定下做面向 EHR 分析、且扎根于 schema 的 SQL 生成。给定问题 \(x\)，模型要么输出一条可执行、扎根 OMOP、不含散文、恰好一个分号的 SQL \(\hat{q}\)，要么在问题无法由数据库回答时输出精确记号 `<NO_SQL>`（定义见 2.4）。推理时在第一个分号处截断。只要输出不是精确的 `<NO_SQL>`，就当作一次 SQL 尝试并执行；无效或空 SQL 记为执行失败。所有模型共用一条指令：只用 OMOP CDM 的表和列以及合法关系，绝不输出 `SELECT *`，只输出以恰好一个分号结尾的 SQL，否则弃答。偏离 OMOP 的 schema 由事后诊断抓住，并反映到执行指标里。目标环境是 PostgreSQL 方言的 OMOP CDM v5.4（OHDSI, 2021）。Figure 1 把流程画成：自由文本经过未来的实体链接，变成带 concept_id 的输入，再由 Llama-3-8B-Instruct 加 LoRA 生成 SQL 或 `<NO_SQL>`；弃答不执行，否则在合成库上以只读事务和语句超时执行。划分单位是模板和 SQL 变体，解码温度设为 0，并在第一个分号截断。事后诊断包括非 OMOP 表引起的 schema drift、漏掉 visit_detail、缺少 FROM 或方言漂移（如 `DATEDIFF`），以及错误弃答。
+
+数据从 EHRSQL 的模板集（Lee et al., 2023）出发，先去掉骨架相同、只换槽位或表面说法的冗余，再改到 OMOP CDM v5.4 的连接路径，并少量补充原先覆盖不足的连接，例如 note 与 note_nlp、provider 与 death、episode 与 episode_event。note 与 note_nlp 用来覆盖和自由文本相连的查询：在本地 OMOP 化的 MIMIC-IV 上，note 来自 MIMIC-IV NOTE，note_nlp 来自 MedCAT 对影像报告和出院小结的标注（Johnson et al., 2023; Kraljevic et al., 2021）。这个真实映射库只用于开发期检查连通性和模板是否说得通，执行评测只用第 2.8 节发布的合成库。75 个模板通常各做成三种（模板, SQL）变体，SQL 结构固定、填入的 concept ID、患者 ID、阈值和时间窗变化，共 223 个变体。标准 SQL 常用 CTE（`WITH`），把队列、时间约束和就诊层级写开。每个变体有 30 种表面形式：1 条规范问句加 29 条 GPT-4.1 改写，改写必须保持意义，并且类型标签里的占位值不变，得到 6,690 条可回答例子；不可回答题不计入这个总数，取自 EHRSQL-2024，只用于弃答评测。标识放在轻量类型标签里，例如 `<DRUG>`、`<PERSON_ID>`，没有 XML 语义。文中的例子把 “Did patient 289 take Panadol yesterday?” 写成带 `<PERSON_ID>289</PERSON_ID>` 和 `<DRUG>839681</DRUG>` 的句子，让模型按类型去找对应的 `*_concept_id` 和连接，而不是把裸整数记死到某个字段。作者逐条核对改写是否语义等价、槽位和时间约束是否保留、有没有加上临床不合理的内容。不可回答的定义沿用 EHRSQL：单靠这份结构化 OMOP 实例不够，要么需要库里没有的外部或规范性临床知识，要么问的是 schema 之外的信息。初版有捷径：不可回答题常常没有类型标签，标签本身就能预测能否回答。发布的归一化划分通过补标签、按可回答题的分布抽样合成标识、以及统一标点，来削弱“有标签即可回答”这一线索。每个例子有两份对齐输入：question_name 用可读概念名，question_concept 把关键实体换成 concept ID，而且两份之间没有显式的名字到 ID 的对应。两份都发布，但报告的结果只用概念归一化输入，指标因此反映的是拿到近乎金标准 OMOP 标识后的生成，而不是原文实体链接。标识是合成的，少数可能碰巧等于 OHDSI 标准词表里的公开 concept_id（Reich et al., 2024）。不可回答题还包括“差一点就在 schema 里”的请求，例如 ICD-11 到 ICD-10 的跨本体查码；唯一正确输出是单独的 `<NO_SQL>`，不附解释。划分不按单条例子切，而按（模板, SQL）变体切，同一查询的改写不跨划分。每个模板最多两个变体标为 seen，其 30 条改写按 20/5/5 进入训练/验证/测试；其余为 unseen，验证和测试各抽 37 个未见变体，每个再加 5 条改写。不可回答题按固定比例注入：训练 10%，验证和测试 20%。结果是训练集 3,312 条（2,980 可回答 + 332 不可回答），验证和测试各 1,162 条（930 + 232）。划分确定，默认种子 42。
+
+Table 1 只统计可回答例子：75 个模板、223 个变体、6,690 条；标准 SQL 的 JOIN 中位数 1、第 90 百分位 3、最大 4；CTE 占 40.36%；`GROUP BY` / `DISTINCT` 为 28.25% / 20.63%；`ORDER BY` / `LIMIT` 均为 60.54%；问题标签中位数为 1，12.57% 没有标签。出现最多的 OMOP 表是 concept 45.74%、visit_occurrence 30.04%、condition_occurrence 26.91%、drug_exposure 21.52%、measurement 17.49%、visit_detail 16.14%、person 13.45%、procedure_occurrence 与 device_exposure 均为 10.76%。执行用的合成 PostgreSQL 库只用于评测、不用于训练，在标准 SQL 固定之后按每条金查询插入最少的合成行，使金查询返回非空，并保留多个患者、日期和事件；插入脚本由 GPT-5.1 协助生成，再经作者核对，不强制 OMOP 完整性约束，因此可能有重复。画像为 23 张 OMOP 表、117,010 行（约 10 MB），含 1,858 名患者和 6,453 次就诊；每人事件数均值 125.48、中位数 9、第 99 百分位 992.92、最大 2,374；visit_detail 有 63,826 行，约为 visit_occurrence 的 9.9 倍。库是为了把对错拉开，而不是为了流行病学真实；“today”这类相对时间使用同一个固定参考日期，细节在第 6 节。模型是 Llama-3-8B-Instruct 加 LoRA：\(r=32\)，\(\alpha=64\)，dropout 0.05，加在注意力和 MLP 投影上；训练 3 个 epoch，batch 8，梯度累积 4，学习率 \(1.5\times10^{-4}\)，余弦调度，warmup 比例 0.05，损失只算生成 token。推理确定：种子 42，温度 0.0，top_p 1.0，max_new_tokens 1024，在第一个分号截断后直接评分。基线把只含 OMOP 表和列的 PostgreSQL DDL 接到用户消息前，模型为 Natural-SQL-7B、未经微调的 Llama-3-8B-Instruct 和 Mistral-7B-Instruct-v0.3；与 LoRA 模型相比，提示里唯一不同的是这块 schema。主指标是 ExecAcc 和可靠性分 RS(\(c\))。ExecAcc 只在可回答例子上计算：预测不是 `<NO_SQL>`、执行成功，且规范化后的结果集与金查询相同；式 (1) 即该指示函数的平均。结果比较前把 NULL 映射成空串、保留 Python 原生类型、行内按类型再按稳定文本键排序、行与行之间再排序，从而不依赖列名、列序和行序；文中说明可回答金查询并不返回 NULL 或空串，所以这一映射不改变所报执行指标。RS(\(c\)) 沿用 TrustSQL，\(c\in\{0,1,10\}\)：可回答且 SQL 正确记 +1，可回答但弃答记 0，可回答但 SQL 错误或执行失败记 \(-c\)，不可回答且弃答记 +1，不可回答却尝试 SQL 记 \(-c\)，数据集得分为样本平均。\(c\) 越大，不安全尝试比弃答罚得更重。次要指标包括可回答性 F1（SQL 为正类）、Unanswerable Recall、可回答题被弃答的比例，以及在尝试了 SQL 的输出上计算的 \(F1_{exe}\)（其召回按定义等于 ExecAcc；精确率只在金标准可回答且模型输出了 SQL 的子集上计算，与 EHRSQL 的做法不同）。字符串重叠的 EM、做了小写、去尾分号和折叠空白的 EMN，以及基于最长公共子序列的 ROUGE-L 只作辅助，因为语义相同的 SQL 可以在连接顺序和谓词顺序上不同。规则诊断还看 schema drift、表集合不匹配、方言漂移和就诊层级遗漏。
